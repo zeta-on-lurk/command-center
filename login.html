@@ -137,7 +137,7 @@
 
         async function handleLogin(e) {
             e.preventDefault();
-            var email = Security.sanitize(document.getElementById('loginEmail').value.trim());
+            var email = document.getElementById('loginEmail').value.trim();
             var password = document.getElementById('loginPassword').value;
             var errorEl = document.getElementById('loginError');
             var btnText = document.getElementById('loginBtnText');
@@ -197,9 +197,12 @@
                 Security.recordLoginAttempt(false);
 
                 // Safe error message
-                var safeMsg = Security.safeError(err, 'login');
+                var safeMsg = err.message || 'Authentication failed. Please try again.';
                 errorEl.textContent = safeMsg;
                 errorEl.classList.remove('hidden');
+
+                // Log full error for debugging
+                console.error('Login error:', err);
 
                 // Audit log
                 Security.auditLog('login_failed', { email: email, attempts: Security.getRemainingAttempts() });
