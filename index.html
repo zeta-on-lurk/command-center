@@ -1856,19 +1856,31 @@
         // ============================================================
         // SUPABASE CONFIG — Replace with your project credentials
         // ============================================================
-        var SUPABASE_URL = 'https://kgcbhqcwfwhslotkesgn.supabase.co';
-        var SUPABASE_ANON_KEY = 'sb_publishable_CpVyKRvwZMCPFeUOFHBlUA_bHmxCTB-';
+        var SUPABASE_URL = '';
+        var SUPABASE_ANON_KEY = '';
         var USE_SUPABASE = false;
         var supabase = null;
 
-        if (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && typeof window.supabase !== 'undefined') {
+        if (SUPABASE_URL && typeof window.supabase !== 'undefined') {
             supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             USE_SUPABASE = true;
         }
 
-        // Auth Guard
+        // Auth Guard — skip if no Supabase (local dev mode)
         (async function authGuard() {
-            if (USE_SUPABASE) {
+            if (!USE_SUPABASE) {
+                // Local dev: set a mock user
+                localStorage.setItem('adam_user', JSON.stringify({
+                    id: 'local-dev',
+                    email: 'dev@localhost',
+                    role: 'principal',
+                    college_id: 'a0000000-0000-0000-0000-000000000001',
+                    department_id: null,
+                    name: 'Principal'
+                }));
+                applyUserRole();
+                return;
+            }
                 try {
                     var session = await supabase.auth.getSession();
                     if (!session.data.session) {

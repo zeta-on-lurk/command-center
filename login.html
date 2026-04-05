@@ -90,12 +90,17 @@
 
     <script>
         // ============================================================
-        // SUPABASE CONFIG — Replace with your project credentials
+        // SUPABASE CONFIG — Leave empty for local dev mode
         // ============================================================
-        var SUPABASE_URL = 'https://kgcbhqcwfwhslotkesgn.supabase.co';
-        var SUPABASE_ANON_KEY = 'sb_publishable_CpVyKRvwZMCPFeUOFHBlUA_bHmxCTB-';
+        var SUPABASE_URL = '';
+        var SUPABASE_ANON_KEY = '';
+        var USE_SUPABASE = false;
+        var supabase = null;
 
-        var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        if (SUPABASE_URL && typeof window.supabase !== 'undefined') {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            USE_SUPABASE = true;
+        }
 
         // Initialize Security Module
         Security.init({
@@ -107,7 +112,7 @@
         });
 
         // Check lockout status on page load
-        (async function checkLockout() {
+        (function checkLockout() {
             var lockout = Security.isLockedOut();
             if (lockout.locked) {
                 var errorEl = document.getElementById('loginError');
@@ -115,6 +120,101 @@
                 errorEl.classList.remove('hidden');
                 document.getElementById('loginBtn').disabled = true;
             }
+        })();
+
+        // Check if already logged in (local mode)
+        (function checkSession() {
+            if (!USE_SUPABASE) {
+                var user = Security.retrieveSecure(Security.CONFIG.userKey);
+                if (user && user.id) {
+                    window.location.href = 'index.html';
+                }
+            }
+        })();
+
+        // Show URL-based messages
+        (function showUrlMessages() {
+            var params = new URLSearchParams(window.location.search);
+            if (params.get('reason') === 'session_expired') {
+                var errorEl = document.getElementById('loginError');
+                errorEl.textContent = 'Your session has expired. Please sign in again.';
+                errorEl.classList.remove('hidden');
+            }
+        })();
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            var email = document.getElementById('loginEmail').value.trim();
+            var password = document.getElementById('loginPassword').value;
+            var errorEl = document.getElementById('loginError');
+            var btnText = document.getElementById('loginBtnText');
+            var btnLoading = document.getElementById('loginBtnLoading');
+            var btn = document.getElementById('loginBtn');
+
+            errorEl.classList.add('hidden');
+            btn.disabled = true;
+            btnText.classList.add('hidden');
+            btnLoading.classList.remove('hidden');
+
+            try {
+                if (!USE_SUPABASE) {
+                    // Local dev mode — accept any non-empty credentials
+                    if (!email || !password) throw new Error('Email and password required.');
+                    Security.recordLoginAttempt(true);
+                    Security.storeSecure(Security.CONFIG.userKey, {
+                        id: 'local-dev',
+                        email: email,
+                        role: 'principal',
+                        college_id: 'a0000000-0000-0000-0000-000000000001',
+                        department_id: null,
+                        name: 'Principal'
+                    });
+                    Security.auditLog('login_success', { email: email, mode: 'local' });
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                // Supabase mode
+                var result = await supabase.auth.signInWithPassword({ email: email, password: password });
+                if (result.error) throw result.error;
+
+                Security.recordLoginAttempt(true);
+
+                var userResult = await supabase.from('users').select('role, college_id, department_id, full_name, email, is_active, locked_until').eq('id', result.data.user.id).single();
+                if (userResult.error) throw new Error('Unable to load user profile.');
+                if (!userResult.data) throw new Error('User profile not found.');
+                if (!userResult.data.is_active) throw new Error('Account disabled.');
+                if (userResult.data.locked_until) throw new Error('Account locked.');
+
+                Security.storeSecure(Security.CONFIG.userKey, {
+                    id: result.data.user.id,
+                    email: userResult.data.email,
+                    role: userResult.data.role,
+                    college_id: userResult.data.college_id,
+                    department_id: userResult.data.department_id,
+                    name: userResult.data.full_name
+                });
+
+                Security.auditLog('login_success', { email: email, role: userResult.data.role });
+                window.location.href = 'index.html';
+            } catch (err) {
+                Security.recordLoginAttempt(false);
+                var safeMsg = err.message || 'Authentication failed.';
+                errorEl.textContent = safeMsg;
+                errorEl.classList.remove('hidden');
+                console.error('Login error:', err);
+
+                var lockout = Security.isLockedOut();
+                if (lockout.locked) {
+                    errorEl.textContent = 'Account locked. Try again in ' + lockout.remaining + ' minutes.';
+                    btn.disabled = true;
+                }
+
+                btn.disabled = false;
+                btnText.classList.remove('hidden');
+                btnLoading.classList.add('hidden');
+            }
+        }
         })();
 
         // Check if already logged in
