@@ -278,108 +278,107 @@ returns uuid as $$
     select department_id from users where id = auth.uid() and is_active = true;
 $$ language sql security definer;
 
--- Super admin bypass
-create policy "super_admin_all" on colleges
-    for all using (get_user_role() = 'super_admin');
-create policy "super_admin_all" on departments
-    for all using (get_user_role() = 'super_admin');
-create policy "super_admin_all" on sections
-    for all using (get_user_role() = 'super_admin');
-create policy "super_admin_all" on users
-    for all using (get_user_role() = 'super_admin');
-create policy "super_admin_all" on faculty
-    for all using (get_user_role() = 'super_admin');
-create policy "super_admin_all" on students
-    for all using (get_user_role() = 'super_admin');
-create policy "super_admin_all" on attendance_daily
-    for all using (get_user_role() = 'super_admin');
-create policy "super_admin_all" on faculty_attendance
-    for all using (get_user_role() = 'super_admin');
-create policy "super_admin_all" on lectures
-    for all using (get_user_role() = 'super_admin');
-create policy "super_admin_all" on syllabus_progress
-    for all using (get_user_role() = 'super_admin');
-create policy "super_admin_all" on audit_log
-    for all using (get_user_role() = 'super_admin');
-create policy "super_admin_all" on notification_alerts
-    for all using (get_user_role() = 'super_admin');
+-- ============================================================
+-- RLS POLICIES — Users table (special handling to avoid circular deps)
+-- ============================================================
 
--- College-level access (principal, VP, dept_head, faculty, data_entry, viewer)
-create policy "college_read" on colleges
+-- Any authenticated user can read their OWN row
+create policy "users_read_own" on users
+    for select using (id = auth.uid());
+
+-- Super admin: full access to users
+create policy "users_sa_all" on users
+    for all using (
+        exists (select 1 from users u where u.id = auth.uid() and u.role = 'super_admin' and u.is_active = true)
+    );
+
+-- Principal/VP: read all users in their college
+create policy "users_college_read" on users
+    for select using (
+        college_id = (select college_id from users where id = auth.uid() and is_active = true)
+        and exists (select 1 from users u where u.id = auth.uid() and u.role in ('principal', 'vice_principal', 'dept_head') and u.is_active = true)
+    );
+
+-- Principal/VP: write all users in their college
+create policy "users_college_write" on users
+    for all using (
+        college_id = (select college_id from users where id = auth.uid() and is_active = true)
+        and exists (select 1 from users u where u.id = auth.uid() and u.role in ('principal', 'vice_principal') and u.is_active = true)
+    );
+
+-- ============================================================
+-- RLS POLICIES — Super Admin (full access, all other tables)
+-- ============================================================
+create policy "sa_all" on colleges for all using (exists (select 1 from users where id = auth.uid() and role = 'super_admin' and is_active = true));
+create policy "sa_all" on departments for all using (exists (select 1 from users where id = auth.uid() and role = 'super_admin' and is_active = true));
+create policy "sa_all" on sections for all using (exists (select 1 from users where id = auth.uid() and role = 'super_admin' and is_active = true));
+create policy "sa_all" on faculty for all using (exists (select 1 from users where id = auth.uid() and role = 'super_admin' and is_active = true));
+create policy "sa_all" on students for all using (exists (select 1 from users where id = auth.uid() and role = 'super_admin' and is_active = true));
+create policy "sa_all" on attendance_daily for all using (exists (select 1 from users where id = auth.uid() and role = 'super_admin' and is_active = true));
+create policy "sa_all" on faculty_attendance for all using (exists (select 1 from users where id = auth.uid() and role = 'super_admin' and is_active = true));
+create policy "sa_all" on lectures for all using (exists (select 1 from users where id = auth.uid() and role = 'super_admin' and is_active = true));
+create policy "sa_all" on syllabus_progress for all using (exists (select 1 from users where id = auth.uid() and role = 'super_admin' and is_active = true));
+create policy "sa_all" on audit_log for all using (exists (select 1 from users where id = auth.uid() and role = 'super_admin' and is_active = true));
+create policy "sa_all" on notification_alerts for all using (exists (select 1 from users where id = auth.uid() and role = 'super_admin' and is_active = true));
+
+-- ============================================================
+-- RLS POLICIES — College-level read (all authenticated users)
+-- ============================================================
+create policy "read_college" on colleges
     for select using (id = get_user_college_id());
-create policy "college_read" on departments
+create policy "read_college" on departments
     for select using (college_id = get_user_college_id());
-create policy "college_read" on sections
+create policy "read_college" on sections
     for select using (
         exists (select 1 from departments d where d.id = sections.department_id and d.college_id = get_user_college_id())
     );
-create policy "college_read" on users
+create policy "read_college" on faculty
     for select using (college_id = get_user_college_id());
-create policy "college_read" on faculty
+create policy "read_college" on students
     for select using (college_id = get_user_college_id());
-create policy "college_read" on students
+create policy "read_college" on attendance_daily
     for select using (college_id = get_user_college_id());
-create policy "college_read" on attendance_daily
+create policy "read_college" on faculty_attendance
     for select using (college_id = get_user_college_id());
-create policy "college_read" on faculty_attendance
+create policy "read_college" on lectures
     for select using (college_id = get_user_college_id());
-create policy "college_read" on lectures
+create policy "read_college" on syllabus_progress
     for select using (college_id = get_user_college_id());
-create policy "college_read" on syllabus_progress
+create policy "read_college" on audit_log
     for select using (college_id = get_user_college_id());
-create policy "college_read" on audit_log
-    for select using (college_id = get_user_college_id());
-create policy "college_read" on notification_alerts
+create policy "read_college" on notification_alerts
     for select using (college_id = get_user_college_id() or user_id = auth.uid());
 
--- Write access: principal + VP
-create policy "college_write" on departments
-    for all using (
-        college_id = get_user_college_id() and get_user_role() in ('principal', 'vice_principal')
-    );
-create policy "college_write" on sections
+-- ============================================================
+-- RLS POLICIES — Write access by role
+-- ============================================================
+
+-- Principal + VP: full write on their college
+create policy "write_college" on departments
+    for all using (college_id = get_user_college_id() and get_user_role() in ('principal', 'vice_principal'));
+create policy "write_college" on sections
     for all using (
         exists (select 1 from departments d where d.id = sections.department_id and d.college_id = get_user_college_id())
         and get_user_role() in ('principal', 'vice_principal')
     );
-create policy "college_write" on users
-    for all using (
-        college_id = get_user_college_id() and get_user_role() in ('principal', 'vice_principal')
-    );
-create policy "college_write" on faculty
-    for all using (
-        college_id = get_user_college_id() and get_user_role() in ('principal', 'vice_principal')
-    );
-create policy "college_write" on students
-    for all using (
-        college_id = get_user_college_id() and get_user_role() in ('principal', 'vice_principal')
-    );
-create policy "college_write" on attendance_daily
-    for all using (
-        college_id = get_user_college_id() and get_user_role() in ('principal', 'vice_principal', 'dept_head', 'data_entry')
-    );
-create policy "college_write" on faculty_attendance
-    for all using (
-        college_id = get_user_college_id() and get_user_role() in ('principal', 'vice_principal', 'dept_head')
-    );
-create policy "college_write" on lectures
-    for all using (
-        college_id = get_user_college_id() and get_user_role() in ('principal', 'vice_principal', 'dept_head', 'faculty')
-    );
-create policy "college_write" on syllabus_progress
-    for all using (
-        college_id = get_user_college_id() and get_user_role() in ('principal', 'vice_principal', 'dept_head', 'faculty')
-    );
-create policy "college_write" on notification_alerts
-    for all using (
-        college_id = get_user_college_id() and get_user_role() in ('principal', 'vice_principal')
-    );
+create policy "write_college" on faculty
+    for all using (college_id = get_user_college_id() and get_user_role() in ('principal', 'vice_principal'));
+create policy "write_college" on students
+    for all using (college_id = get_user_college_id() and get_user_role() in ('principal', 'vice_principal'));
+create policy "write_college" on attendance_daily
+    for all using (college_id = get_user_college_id() and get_user_role() in ('principal', 'vice_principal', 'dept_head', 'data_entry'));
+create policy "write_college" on faculty_attendance
+    for all using (college_id = get_user_college_id() and get_user_role() in ('principal', 'vice_principal', 'dept_head'));
+create policy "write_college" on lectures
+    for all using (college_id = get_user_college_id() and get_user_role() in ('principal', 'vice_principal', 'dept_head', 'faculty'));
+create policy "write_college" on syllabus_progress
+    for all using (college_id = get_user_college_id() and get_user_role() in ('principal', 'vice_principal', 'dept_head', 'faculty'));
+create policy "write_college" on notification_alerts
+    for all using (college_id = get_user_college_id() and get_user_role() in ('principal', 'vice_principal'));
 
 -- Department head: write only their department
 create policy "dept_head_write" on faculty
-    for all using (
-        department_id = get_user_department_id() and get_user_role() = 'dept_head'
-    );
+    for all using (department_id = get_user_department_id() and get_user_role() = 'dept_head');
 create policy "dept_head_write" on students
     for all using (
         exists (select 1 from sections s join departments d on s.department_id = d.id where s.id = students.section_id and d.id = get_user_department_id())
@@ -403,11 +402,15 @@ create policy "dept_head_write" on syllabus_progress
 
 -- Faculty: write own data only
 create policy "faculty_write_own" on lectures
-    for all using (faculty_id = auth.uid() and get_user_role() = 'faculty');
+    for all using (faculty_id = (select id from faculty where user_id = auth.uid()) and get_user_role() = 'faculty');
 create policy "faculty_write_own" on syllabus_progress
-    for all using (faculty_id = auth.uid() and get_user_role() = 'faculty');
-create policy "faculty_write_own" on faculty_attendance
-    for select using (faculty_id = auth.uid() and get_user_role() = 'faculty');
+    for all using (faculty_id = (select id from faculty where user_id = auth.uid()) and get_user_role() = 'faculty');
+create policy "faculty_read_own_att" on faculty_attendance
+    for select using (faculty_id = (select id from faculty where user_id = auth.uid()) and get_user_role() = 'faculty');
+
+-- Audit log: read-only
+create policy "audit_read" on audit_log
+    for select using (college_id = get_user_college_id());
 
 -- ============================================================
 -- FUNCTIONS
