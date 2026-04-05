@@ -1,0 +1,3102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co; img-src 'self' data: blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta name="robots" content="noindex, nofollow">
+    <title>COMMAND CENTER — Govt. College Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="src/security.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['Playfair Display', 'serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        zinc: {
+                            950: '#09090b',
+                            900: '#18181b',
+                            800: '#27272a',
+                            700: '#3f3f46',
+                            600: '#52525b',
+                            500: '#71717a',
+                            400: '#a1a1aa',
+                            300: '#d4d4d8',
+                            200: '#e4e4e7',
+                            100: '#f4f4f5',
+                            50: '#fafafa',
+                        },
+                        blood: '#8b0000',
+                        cyan: '#00b7eb',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: #09090b; color: #e4e4e7; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: #18181b; }
+        ::-webkit-scrollbar-thumb { background: #3f3f46; }
+        ::-webkit-scrollbar-thumb:hover { background: #52525b; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .nav-link { transition: all 0.15s ease; }
+        .nav-link.active { background-color: #27272a; border-left-color: #8b0000; color: #e4e4e7; }
+        .toggle-switch { width: 36px; height: 20px; background: #3f3f46; border-radius: 999px; position: relative; cursor: pointer; transition: background 0.2s; }
+        .toggle-switch.on { background: #8b0000; }
+        .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: #e4e4e7; border-radius: 50%; transition: transform 0.2s; }
+        .toggle-switch.on::after { transform: translateX(16px); }
+        select, input[type="text"], input[type="date"], input[type="email"], input[type="password"], input[type="number"], textarea {
+            background: #18181b; border: 1px solid #27272a; color: #e4e4e7; padding: 8px 12px; font-family: 'JetBrains Mono', monospace; font-size: 11px; outline: none; transition: border-color 0.2s;
+        }
+        select:focus, input:focus, textarea:focus { border-color: #52525b; }
+        select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2371717a' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; padding-right: 30px; }
+        .btn-primary { background: #8b0000; color: #e4e4e7; padding: 8px 16px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; border: none; cursor: pointer; transition: background 0.2s; }
+        .btn-primary:hover { background: #a00000; }
+        .btn-secondary { background: #27272a; color: #a1a1aa; padding: 8px 16px; font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; border: 1px solid #3f3f46; cursor: pointer; transition: all 0.2s; }
+        .btn-secondary:hover { background: #3f3f46; color: #e4e4e7; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; display: none; align-items: center; justify-content: center; }
+        .modal-overlay.show { display: flex; }
+        .modal-box { background: #18181b; border: 1px solid #27272a; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+        .tab-btn { padding: 8px 16px; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #71717a; border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.15s; font-family: 'JetBrains Mono', monospace; }
+        .tab-btn.active { color: #e4e4e7; border-bottom-color: #8b0000; }
+        .tab-btn:hover { color: #a1a1aa; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .badge { display: inline-block; padding: 2px 8px; font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; }
+        .badge-active { background: rgba(22, 163, 74, 0.15); color: #4ade80; border: 1px solid rgba(22, 163, 74, 0.3); }
+        .badge-warning { background: rgba(234, 179, 8, 0.1); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.25); }
+        .badge-critical { background: rgba(139, 0, 0, 0.2); color: #8b0000; border: 1px solid rgba(139, 0, 0, 0.4); }
+        .badge-absent { background: rgba(100, 100, 100, 0.2); color: #71717a; border: 1px solid rgba(100, 100, 100, 0.3); }
+        .badge-present { background: rgba(22, 163, 74, 0.15); color: #4ade80; border: 1px solid rgba(22, 163, 74, 0.3); }
+        .badge-late { background: rgba(234, 179, 8, 0.1); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.25); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+        .page.active { animation: fadeIn 0.2s ease; }
+    </style>
+</head>
+<body class="font-mono min-h-screen flex">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-64 min-h-screen bg-zinc-900 border-r border-zinc-800 flex flex-col shrink-0">
+        <div class="h-16 flex items-center px-5 border-b border-zinc-800">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-blood flex items-center justify-center">
+                    <span class="text-white font-serif font-bold text-sm">A</span>
+                </div>
+                <div>
+                    <h1 class="font-serif font-bold text-zinc-100 text-sm tracking-wider">A.D.A.M.</h1>
+                    <p class="text-zinc-600 text-[10px] tracking-widest uppercase">Command Center</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 py-4 px-3 space-y-1">
+            <a href="#" class="nav-link active flex items-center gap-3 px-3 py-2.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 border-l-2 border-transparent transition-colors" data-page="dashboard">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+                <span class="text-xs tracking-wider uppercase">Dashboard</span>
+            </a>
+            <a href="#" class="nav-link flex items-center gap-3 px-3 py-2.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 border-l-2 border-transparent transition-colors" data-page="attendance">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span class="text-xs tracking-wider uppercase">Attendance</span>
+            </a>
+            <a href="#" class="nav-link flex items-center gap-3 px-3 py-2.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 border-l-2 border-transparent transition-colors" data-page="compliance">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                <span class="text-xs tracking-wider uppercase">Compliance</span>
+            </a>
+            <a href="#" class="nav-link flex items-center gap-3 px-3 py-2.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 border-l-2 border-transparent transition-colors" data-page="faculty">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/></svg>
+                <span class="text-xs tracking-wider uppercase">Faculty</span>
+            </a>
+            <a href="#" class="nav-link flex items-center gap-3 px-3 py-2.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 border-l-2 border-transparent transition-colors" data-page="reports">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <span class="text-xs tracking-wider uppercase">Reports</span>
+            </a>
+            <a href="#" class="nav-link flex items-center gap-3 px-3 py-2.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 border-l-2 border-transparent transition-colors" data-page="dataentry">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                <span class="text-xs tracking-wider uppercase">Data Entry</span>
+            </a>
+            <a href="#" class="nav-link flex items-center gap-3 px-3 py-2.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800/50 border-l-2 border-transparent transition-colors" data-page="settings">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                <span class="text-xs tracking-wider uppercase">Settings</span>
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-zinc-800">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-zinc-800 border border-zinc-700 flex items-center justify-center">
+                    <span class="text-zinc-400 text-xs font-serif font-bold">P</span>
+                </div>
+                <div>
+                    <p class="text-zinc-300 text-xs">Principal</p>
+                    <p class="text-zinc-600 text-[10px]">Govt. College — Main Campus</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="fixed inset-0 bg-zinc-950 z-[200] flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="w-12 h-12 border-2 border-zinc-800 border-t-blood animate-spin mb-4"></div>
+        <p class="font-serif text-zinc-300 text-sm tracking-wider">INITIALIZING COMMAND CENTER</p>
+        <p id="loadingStatus" class="text-zinc-600 text-[10px] tracking-widest uppercase mt-2">Loading data...</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col min-w-0">
+        <header class="h-16 bg-zinc-900 border-b border-zinc-800 flex items-center justify-between px-4 md:px-6 sticky top-0 z-20">
+            <div class="flex items-center gap-4">
+                <div>
+                    <h2 class="font-serif font-bold text-zinc-100 text-base tracking-wider">COMMAND CENTER</h2>
+                    <p id="headerSubtitle" class="text-zinc-600 text-[10px] tracking-widest uppercase">Govt. College — Principal Dashboard</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-6">
+                <div class="hidden sm:flex items-center gap-2 text-zinc-500 text-xs">
+                    <div class="w-2 h-2 bg-green-600 animate-pulse"></div>
+                    <span>SYSTEM ONLINE</span>
+                </div>
+                <div class="hidden sm:flex items-center gap-2 text-zinc-500 text-xs" id="headerUserInfo">
+                    <div class="w-6 h-6 bg-zinc-800 border border-zinc-700 flex items-center justify-center">
+                        <span class="text-zinc-400 text-[10px] font-serif font-bold" id="headerUserInitials">P</span>
+                    </div>
+                    <span id="headerUserName" class="text-zinc-400">Principal</span>
+                </div>
+                <button onclick="handleLogout()" class="text-zinc-600 hover:text-zinc-400 text-[10px] tracking-wider uppercase transition-colors" id="logoutBtn" title="Sign Out">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                </button>
+                <div class="text-right">
+                    <div id="liveClock" class="font-mono text-zinc-100 text-lg tracking-widest font-semibold">00:00:00</div>
+                    <div id="liveDate" class="text-zinc-600 text-[10px] tracking-wider uppercase">Loading...</div>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto">
+<div id="page-dashboard" class="page active p-4 md:p-6 space-y-5">
+
+  <!-- Metric Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+    <!-- Friday Compliance -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-zinc-500 text-[10px] tracking-widest uppercase">Friday Compliance</p>
+          <p class="font-mono text-2xl text-zinc-100 mt-1">87.3%</p>
+        </div>
+        <span class="text-emerald-500 text-xs font-mono">+2.1%</span>
+      </div>
+      <div class="w-full bg-zinc-800 rounded-full h-1.5">
+        <div class="bg-emerald-500 h-1.5 rounded-full" style="width: 87.3%"></div>
+      </div>
+      <p class="text-zinc-500 text-xs">42 of 48 faculty compliant</p>
+    </div>
+
+    <!-- Total Study Hours -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-zinc-500 text-[10px] tracking-widest uppercase">Total Study Hours</p>
+          <p class="font-mono text-2xl text-zinc-100 mt-1">1,247 hrs</p>
+        </div>
+        <span class="text-zinc-500 text-xs font-mono">72%</span>
+      </div>
+      <div class="w-full bg-zinc-800 rounded-full h-1.5">
+        <div class="bg-cyan-500 h-1.5 rounded-full" style="width: 72%"></div>
+      </div>
+      <p class="text-zinc-500 text-xs">Monthly target: 1,730 hrs</p>
+    </div>
+
+    <!-- Critical Alerts -->
+    <div class="bg-zinc-900 border border-red-900/40 p-4 space-y-3">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-zinc-500 text-[10px] tracking-widest uppercase">Critical Alerts</p>
+          <p class="font-mono text-2xl text-red-500 mt-1">3 ACTIVE</p>
+        </div>
+        <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-red-500/10 border border-red-500/30 rounded text-red-500 text-[10px] tracking-widest uppercase animate-pulse">Live</span>
+      </div>
+      <div class="space-y-2">
+        <div class="flex items-start gap-2 text-xs text-zinc-300">
+          <span class="w-1.5 h-1.5 bg-red-500 rounded-full mt-1 shrink-0"></span>
+          <span>Pre-Engg — 4 unmarked lectures</span>
+        </div>
+        <div class="flex items-start gap-2 text-xs text-zinc-300">
+          <span class="w-1.5 h-1.5 bg-red-500 rounded-full mt-1 shrink-0"></span>
+          <span>Mr. Tariq — absent 3 consecutive days</span>
+        </div>
+        <div class="flex items-start gap-2 text-xs text-zinc-300">
+          <span class="w-1.5 h-1.5 bg-red-500 rounded-full mt-1 shrink-0"></span>
+          <span>FBISE prep — syllabus 12% behind</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Weekly Compliance Trend Chart -->
+  <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="font-serif text-zinc-100 text-sm tracking-wider">Weekly Compliance Trend</h3>
+        <p class="text-zinc-600 text-[10px] tracking-widest uppercase mt-0.5">Last 8 weeks performance</p>
+      </div>
+      <div class="flex items-center gap-4 text-[10px] tracking-widest uppercase">
+        <span class="flex items-center gap-1.5 text-zinc-400"><span class="w-2.5 h-0.5 bg-emerald-500 rounded"></span>Overall</span>
+        <span class="flex items-center gap-1.5 text-zinc-400"><span class="w-2.5 h-0.5 bg-cyan-500 rounded"></span>Pre-Medical</span>
+        <span class="flex items-center gap-1.5 text-zinc-400"><span class="w-2.5 h-0.5 bg-amber-500 rounded"></span>Pre-Engineering</span>
+      </div>
+    </div>
+    <div class="bg-zinc-950 border border-zinc-800/50 rounded p-3">
+      <canvas id="complianceChart" class="w-full" style="height: 260px;"></canvas>
+    </div>
+  </div>
+
+  <!-- Faculty Accountability Table -->
+  <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-4">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="font-serif text-zinc-100 text-sm tracking-wider">Faculty Accountability</h3>
+        <p class="text-zinc-600 text-[10px] tracking-widest uppercase mt-0.5">Current status overview</p>
+      </div>
+      <button class="btn-secondary text-xs">View All</button>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-xs">
+        <thead>
+          <tr class="text-zinc-500 text-[10px] tracking-widest uppercase border-b border-zinc-800">
+            <th class="text-left py-2 px-3 font-normal">Faculty Name</th>
+            <th class="text-left py-2 px-3 font-normal">Department</th>
+            <th class="text-left py-2 px-3 font-normal">Compliance %</th>
+            <th class="text-left py-2 px-3 font-normal">Lectures Today</th>
+            <th class="text-left py-2 px-3 font-normal">Last Active</th>
+            <th class="text-left py-2 px-3 font-normal">Status</th>
+          </tr>
+        </thead>
+        <tbody class="text-zinc-300">
+          <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+            <td class="py-2.5 px-3 font-medium text-zinc-100">Prof. Naveed Ahmed</td>
+            <td class="py-2.5 px-3">Pre-Medical</td>
+            <td class="py-2.5 px-3 font-mono text-emerald-400">96.2%</td>
+            <td class="py-2.5 px-3 font-mono">4</td>
+            <td class="py-2.5 px-3 text-zinc-500">10:30 AM</td>
+            <td class="py-2.5 px-3"><span class="badge badge-active">Active</span></td>
+          </tr>
+          <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+            <td class="py-2.5 px-3 font-medium text-zinc-100">Dr. Saima Rashid</td>
+            <td class="py-2.5 px-3">Pre-Medical</td>
+            <td class="py-2.5 px-3 font-mono text-emerald-400">94.8%</td>
+            <td class="py-2.5 px-3 font-mono">3</td>
+            <td class="py-2.5 px-3 text-zinc-500">09:45 AM</td>
+            <td class="py-2.5 px-3"><span class="badge badge-active">Active</span></td>
+          </tr>
+          <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+            <td class="py-2.5 px-3 font-medium text-zinc-100">Mr. Tariq Mehmood</td>
+            <td class="py-2.5 px-3">Pre-Engineering</td>
+            <td class="py-2.5 px-3 font-mono text-red-500">61.4%</td>
+            <td class="py-2.5 px-3 font-mono text-red-400">0</td>
+            <td class="py-2.5 px-3 text-zinc-500">2 days ago</td>
+            <td class="py-2.5 px-3"><span class="badge badge-critical">Critical</span></td>
+          </tr>
+          <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+            <td class="py-2.5 px-3 font-medium text-zinc-100">Ms. Fatima Zahra</td>
+            <td class="py-2.5 px-3">ICS</td>
+            <td class="py-2.5 px-3 font-mono text-emerald-400">91.7%</td>
+            <td class="py-2.5 px-3 font-mono">4</td>
+            <td class="py-2.5 px-3 text-zinc-500">11:15 AM</td>
+            <td class="py-2.5 px-3"><span class="badge badge-active">Active</span></td>
+          </tr>
+          <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+            <td class="py-2.5 px-3 font-medium text-zinc-100">Mr. Usman Khalid</td>
+            <td class="py-2.5 px-3">Pre-Engineering</td>
+            <td class="py-2.5 px-3 font-mono text-amber-400">78.3%</td>
+            <td class="py-2.5 px-3 font-mono">2</td>
+            <td class="py-2.5 px-3 text-zinc-500">08:30 AM</td>
+            <td class="py-2.5 px-3"><span class="badge badge-warning">Warning</span></td>
+          </tr>
+          <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+            <td class="py-2.5 px-3 font-medium text-zinc-100">Prof. Asad Ullah</td>
+            <td class="py-2.5 px-3">General Science</td>
+            <td class="py-2.5 px-3 font-mono text-emerald-400">93.1%</td>
+            <td class="py-2.5 px-3 font-mono">3</td>
+            <td class="py-2.5 px-3 text-zinc-500">10:00 AM</td>
+            <td class="py-2.5 px-3"><span class="badge badge-active">Active</span></td>
+          </tr>
+          <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+            <td class="py-2.5 px-3 font-medium text-zinc-100">Mr. Faisal Rehman</td>
+            <td class="py-2.5 px-3">ICS</td>
+            <td class="py-2.5 px-3 font-mono text-amber-400">82.6%</td>
+            <td class="py-2.5 px-3 font-mono">3</td>
+            <td class="py-2.5 px-3 text-zinc-500">09:00 AM</td>
+            <td class="py-2.5 px-3"><span class="badge badge-warning">Warning</span></td>
+          </tr>
+          <tr class="hover:bg-zinc-800/30">
+            <td class="py-2.5 px-3 font-medium text-zinc-100">Dr. Ayesha Siddiqui</td>
+            <td class="py-2.5 px-3">Pre-Medical</td>
+            <td class="py-2.5 px-3 font-mono text-emerald-400">97.5%</td>
+            <td class="py-2.5 px-3 font-mono">4</td>
+            <td class="py-2.5 px-3 text-zinc-500">11:30 AM</td>
+            <td class="py-2.5 px-3"><span class="badge badge-active">Active</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- Pagination -->
+    <div class="flex items-center justify-between pt-2">
+      <p class="text-zinc-500 text-[10px] tracking-widest uppercase">Showing 1-8 of 48 faculty</p>
+      <div class="flex items-center gap-1">
+        <button class="px-2.5 py-1 text-xs bg-zinc-800 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-700 disabled:opacity-40" disabled>Prev</button>
+        <button class="px-2.5 py-1 text-xs bg-emerald-600 text-white rounded">1</button>
+        <button class="px-2.5 py-1 text-xs bg-zinc-800 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-700">2</button>
+        <button class="px-2.5 py-1 text-xs bg-zinc-800 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-700">3</button>
+        <button class="px-2.5 py-1 text-xs bg-zinc-800 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-700">4</button>
+        <button class="px-2.5 py-1 text-xs bg-zinc-800 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-700">6</button>
+        <button class="px-2.5 py-1 text-xs bg-zinc-800 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-700">Next</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div id="page-attendance" class="page p-4 md:p-6 space-y-5">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div>
+      <h2 class="font-serif text-zinc-100 text-sm tracking-wider">Daily Attendance Register</h2>
+      <p class="text-zinc-600 text-[10px] tracking-widest uppercase mt-0.5">Mark and monitor daily student attendance</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <input type="date" value="2026-04-03" class="bg-zinc-900 border border-zinc-700 text-zinc-100 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600 font-mono">
+      <button class="btn-primary">LOAD</button>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-zinc-900 border border-zinc-800 p-4">
+      <p class="text-zinc-500 text-[10px] tracking-widest uppercase">Total Students</p>
+      <p class="font-mono text-2xl text-zinc-100 mt-1">1,842</p>
+    </div>
+    <div class="bg-zinc-900 border border-emerald-900/40 p-4">
+      <p class="text-zinc-500 text-[10px] tracking-widest uppercase">Present</p>
+      <p class="font-mono text-2xl text-emerald-400 mt-1">1,621</p>
+    </div>
+    <div class="bg-zinc-900 border border-red-900/40 p-4">
+      <p class="text-zinc-500 text-[10px] tracking-widest uppercase">Absent</p>
+      <p class="font-mono text-2xl text-red-500 mt-1">178</p>
+    </div>
+    <div class="bg-zinc-900 border border-amber-900/40 p-4">
+      <p class="text-zinc-500 text-[10px] tracking-widest uppercase">Late</p>
+      <p class="font-mono text-2xl text-amber-400 mt-1">43</p>
+    </div>
+  </div>
+
+  <!-- Section-Wise Breakdown -->
+  <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-4">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <h3 class="font-serif text-zinc-100 text-sm tracking-wider">Section-Wise Breakdown</h3>
+      <div class="flex items-center gap-2">
+        <select class="bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-emerald-600">
+          <option>All Sections</option>
+          <option>Pre-Medical</option>
+          <option>Pre-Engineering</option>
+          <option>ICS</option>
+          <option>FA</option>
+          <option>FSc General</option>
+        </select>
+        <select class="bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-emerald-600">
+          <option>All Status</option>
+          <option>Present</option>
+          <option>Absent</option>
+          <option>Late</option>
+        </select>
+      </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-xs">
+        <thead>
+          <tr class="text-zinc-500 text-[10px] tracking-widest uppercase border-b border-zinc-800">
+            <th class="text-left py-2 px-3 font-normal">Roll No.</th>
+            <th class="text-left py-2 px-3 font-normal">Student Name</th>
+            <th class="text-left py-2 px-3 font-normal">Section</th>
+            <th class="text-left py-2 px-3 font-normal">Time In</th>
+            <th class="text-left py-2 px-3 font-normal">Status</th>
+            <th class="text-left py-2 px-3 font-normal">Remarks</th>
+          </tr>
+        </thead>
+        <tbody class="text-zinc-300">
+          <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+            <td class="py-2.5 px-3 font-mono text-zinc-500">PM-001</td>
+            <td class="py-2.5 px-3 font-medium text-zinc-100">Ahmed Raza Khan</td>
+            <td class="py-2.5 px-3">Pre-Medical A</td>
+            <td class="py-2.5 px-3 font-mono">07:52 AM</td>
+            <td class="py-2.5 px-3"><span class="badge badge-active">Present</span></td>
+            <td class="py-2.5 px-3 text-zinc-500">—</td>
+          </tr>
+          <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+            <td class="py-2.5 px-3 font-mono text-zinc-500">PM-014</td>
+            <td class="py-2.5 px-3 font-medium text-zinc-100">Sana Ullah</td>
+            <td class="py-2.5 px-3">Pre-Medical B</td>
+            <td class="py-2.5 px-3 font-mono">—</td>
+            <td class="py-2.5 px-3"><span class="badge badge-absent">Absent</span></td>
+            <td class="py-2.5 px-3 text-zinc-500">Medical leave</td>
+          </tr>
+          <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+            <td class="py-2.5 px-3 font-mono text-zinc-500">PE-007</td>
+            <td class="py-2.5 px-3 font-medium text-zinc-100">Bilal Ahmad</td>
+            <td class="py-2.5 px-3">Pre-Engineering A</td>
+            <td class="py-2.5 px-3 font-mono">08:17 AM</td>
+            <td class="py-2.5 px-3"><span class="badge badge-warning">Late</span></td>
+            <td class="py-2.5 px-3 text-zinc-500">Bus delay</td>
+          </tr>
+          <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+            <td class="py-2.5 px-3 font-mono text-zinc-500">ICS-023</td>
+            <td class="py-2.5 px-3 font-medium text-zinc-100">Hamza Malik</td>
+            <td class="py-2.5 px-3">ICS A</td>
+            <td class="py-2.5 px-3 font-mono">07:45 AM</td>
+            <td class="py-2.5 px-3"><span class="badge badge-active">Present</span></td>
+            <td class="py-2.5 px-3 text-zinc-500">—</td>
+          </tr>
+          <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+            <td class="py-2.5 px-3 font-mono text-zinc-500">FA-031</td>
+            <td class="py-2.5 px-3 font-medium text-zinc-100">Ayesha Noor</td>
+            <td class="py-2.5 px-3">FA A</td>
+            <td class="py-2.5 px-3 font-mono">—</td>
+            <td class="py-2.5 px-3"><span class="badge badge-absent">Absent</span></td>
+            <td class="py-2.5 px-3 text-zinc-500">Unreported</td>
+          </tr>
+          <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+            <td class="py-2.5 px-3 font-mono text-zinc-500">PM-042</td>
+            <td class="py-2.5 px-3 font-medium text-zinc-100">Zainab Tariq</td>
+            <td class="py-2.5 px-3">Pre-Medical C</td>
+            <td class="py-2.5 px-3 font-mono">07:58 AM</td>
+            <td class="py-2.5 px-3"><span class="badge badge-active">Present</span></td>
+            <td class="py-2.5 px-3 text-zinc-500">—</td>
+          </tr>
+          <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+            <td class="py-2.5 px-3 font-mono text-zinc-500">PE-019</td>
+            <td class="py-2.5 px-3 font-medium text-zinc-100">Usman Ghani</td>
+            <td class="py-2.5 px-3">Pre-Engineering B</td>
+            <td class="py-2.5 px-3 font-mono">08:05 AM</td>
+            <td class="py-2.5 px-3"><span class="badge badge-active">Present</span></td>
+            <td class="py-2.5 px-3 text-zinc-500">—</td>
+          </tr>
+          <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+            <td class="py-2.5 px-3 font-mono text-zinc-500">ICS-011</td>
+            <td class="py-2.5 px-3 font-medium text-zinc-100">Ali Hassan</td>
+            <td class="py-2.5 px-3">ICS B</td>
+            <td class="py-2.5 px-3 font-mono">08:22 AM</td>
+            <td class="py-2.5 px-3"><span class="badge badge-warning">Late</span></td>
+            <td class="py-2.5 px-3 text-zinc-500">—</td>
+          </tr>
+          <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+            <td class="py-2.5 px-3 font-mono text-zinc-500">GS-008</td>
+            <td class="py-2.5 px-3 font-medium text-zinc-100">Fatima Batool</td>
+            <td class="py-2.5 px-3">FSc General</td>
+            <td class="py-2.5 px-3 font-mono">—</td>
+            <td class="py-2.5 px-3"><span class="badge badge-absent">Absent</span></td>
+            <td class="py-2.5 px-3 text-zinc-500">3rd consecutive</td>
+          </tr>
+          <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+            <td class="py-2.5 px-3 font-mono text-zinc-500">PM-055</td>
+            <td class="py-2.5 px-3 font-medium text-zinc-100">Hassan Ali Shah</td>
+            <td class="py-2.5 px-3">Pre-Medical A</td>
+            <td class="py-2.5 px-3 font-mono">07:40 AM</td>
+            <td class="py-2.5 px-3"><span class="badge badge-active">Present</span></td>
+            <td class="py-2.5 px-3 text-zinc-500">—</td>
+          </tr>
+          <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+            <td class="py-2.5 px-3 font-mono text-zinc-500">FA-017</td>
+            <td class="py-2.5 px-3 font-medium text-zinc-100">Mariam Aslam</td>
+            <td class="py-2.5 px-3">FA B</td>
+            <td class="py-2.5 px-3 font-mono">08:01 AM</td>
+            <td class="py-2.5 px-3"><span class="badge badge-active">Present</span></td>
+            <td class="py-2.5 px-3 text-zinc-500">—</td>
+          </tr>
+          <tr class="hover:bg-zinc-800/30">
+            <td class="py-2.5 px-3 font-mono text-zinc-500">PE-033</td>
+            <td class="py-2.5 px-3 font-medium text-zinc-100">Kamran Yousaf</td>
+            <td class="py-2.5 px-3">Pre-Engineering A</td>
+            <td class="py-2.5 px-3 font-mono">—</td>
+            <td class="py-2.5 px-3"><span class="badge badge-absent">Absent</span></td>
+            <td class="py-2.5 px-3 text-zinc-500">Unreported</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="flex items-center justify-between pt-2">
+      <p class="text-zinc-500 text-[10px] tracking-widest uppercase">Showing 1-12 of 1,842 students</p>
+      <div class="flex items-center gap-1">
+        <button class="px-2.5 py-1 text-xs bg-zinc-800 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-700 disabled:opacity-40" disabled>Prev</button>
+        <button class="px-2.5 py-1 text-xs bg-emerald-600 text-white rounded">1</button>
+        <button class="px-2.5 py-1 text-xs bg-zinc-800 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-700">2</button>
+        <button class="px-2.5 py-1 text-xs bg-zinc-800 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-700">3</button>
+        <button class="px-2.5 py-1 text-xs bg-zinc-800 border border-zinc-700 text-zinc-400 rounded hover:bg-zinc-700">Next</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts & Alerts -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+    <!-- Weekly Attendance Trend -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-4">
+      <div>
+        <h3 class="font-serif text-zinc-100 text-sm tracking-wider">Weekly Attendance Trend</h3>
+        <p class="text-zinc-600 text-[10px] tracking-widest uppercase mt-0.5">Present vs absent this week</p>
+      </div>
+      <div class="bg-zinc-950 border border-zinc-800/50 rounded p-3">
+        <canvas id="attendanceChart" class="w-full" style="height: 240px;"></canvas>
+      </div>
+    </div>
+
+    <!-- Absentee Alert List -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-4">
+      <div>
+        <h3 class="font-serif text-zinc-100 text-sm tracking-wider">Absentee Alert List</h3>
+        <p class="text-zinc-600 text-[10px] tracking-widest uppercase mt-0.5">Flagged for consecutive absences</p>
+      </div>
+      <div class="space-y-2">
+        <div class="flex items-center justify-between bg-zinc-950 border border-zinc-800/50 rounded px-3 py-2.5">
+          <div class="flex items-center gap-3">
+            <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+            <div>
+              <p class="text-zinc-100 text-xs font-medium">Fatima Batool</p>
+              <p class="text-zinc-500 text-[10px]">FSc General</p>
+            </div>
+          </div>
+          <span class="font-mono text-red-500 text-xs">3 days</span>
+        </div>
+        <div class="flex items-center justify-between bg-zinc-950 border border-zinc-800/50 rounded px-3 py-2.5">
+          <div class="flex items-center gap-3">
+            <span class="w-2 h-2 bg-red-500 rounded-full"></span>
+            <div>
+              <p class="text-zinc-100 text-xs font-medium">Ayesha Noor</p>
+              <p class="text-zinc-500 text-[10px]">FA A</p>
+            </div>
+          </div>
+          <span class="font-mono text-red-500 text-xs">3 days</span>
+        </div>
+        <div class="flex items-center justify-between bg-zinc-950 border border-zinc-800/50 rounded px-3 py-2.5">
+          <div class="flex items-center gap-3">
+            <span class="w-2 h-2 bg-amber-500 rounded-full"></span>
+            <div>
+              <p class="text-zinc-100 text-xs font-medium">Kamran Yousaf</p>
+              <p class="text-zinc-500 text-[10px]">Pre-Engineering A</p>
+            </div>
+          </div>
+          <span class="font-mono text-amber-400 text-xs">2 days</span>
+        </div>
+        <div class="flex items-center justify-between bg-zinc-950 border border-zinc-800/50 rounded px-3 py-2.5">
+          <div class="flex items-center gap-3">
+            <span class="w-2 h-2 bg-amber-500 rounded-full"></span>
+            <div>
+              <p class="text-zinc-100 text-xs font-medium">Sana Ullah</p>
+              <p class="text-zinc-500 text-[10px]">Pre-Medical B</p>
+            </div>
+          </div>
+          <span class="font-mono text-amber-400 text-xs">2 days</span>
+        </div>
+        <div class="flex items-center justify-between bg-zinc-950 border border-zinc-800/50 rounded px-3 py-2.5">
+          <div class="flex items-center gap-3">
+            <span class="w-2 h-2 bg-zinc-600 rounded-full"></span>
+            <div>
+              <p class="text-zinc-100 text-xs font-medium">Rizwan Ahmed</p>
+              <p class="text-zinc-500 text-[10px]">ICS B</p>
+            </div>
+          </div>
+          <span class="font-mono text-zinc-400 text-xs">1 day</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+<div id="page-compliance" class="page p-4 md:p-6 space-y-5">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div>
+      <h2 class="font-serif text-zinc-100 text-sm tracking-wider">Compliance Monitoring</h2>
+      <p class="text-zinc-600 text-[10px] tracking-widest uppercase mt-0.5">Track lecture delivery and syllabus coverage</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <select class="bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs px-2.5 py-1.5 rounded focus:outline-none focus:border-emerald-600">
+        <option>This Week</option>
+        <option>This Month</option>
+        <option>This Quarter</option>
+      </select>
+      <button class="btn-primary">REFRESH</button>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-zinc-900 border border-zinc-800 p-4">
+      <p class="text-zinc-500 text-[10px] tracking-widest uppercase">Overall Compliance</p>
+      <p class="font-mono text-2xl text-zinc-100 mt-1">87.3%</p>
+      <div class="w-full bg-zinc-800 rounded-full h-1 mt-2">
+        <div class="bg-emerald-500 h-1 rounded-full" style="width: 87.3%"></div>
+      </div>
+    </div>
+    <div class="bg-zinc-900 border border-cyan-900/40 p-4">
+      <p class="text-zinc-500 text-[10px] tracking-widest uppercase">Lecture Delivery</p>
+      <p class="font-mono text-2xl text-cyan-400 mt-1">94.1%</p>
+      <div class="w-full bg-zinc-800 rounded-full h-1 mt-2">
+        <div class="bg-cyan-500 h-1 rounded-full" style="width: 94.1%"></div>
+      </div>
+    </div>
+    <div class="bg-zinc-900 border border-amber-900/40 p-4">
+      <p class="text-zinc-500 text-[10px] tracking-widest uppercase">Syllabus Coverage</p>
+      <p class="font-mono text-2xl text-amber-400 mt-1">76.8%</p>
+      <div class="w-full bg-zinc-800 rounded-full h-1 mt-2">
+        <div class="bg-amber-500 h-1 rounded-full" style="width: 76.8%"></div>
+      </div>
+    </div>
+    <div class="bg-zinc-900 border border-red-900/40 p-4">
+      <p class="text-zinc-500 text-[10px] tracking-widest uppercase">Non-Compliant</p>
+      <p class="font-mono text-2xl text-red-500 mt-1">6</p>
+      <p class="text-zinc-500 text-[10px] mt-1">faculty flagged</p>
+    </div>
+  </div>
+
+  <!-- Charts & Progress -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+    <!-- Section-Wise Compliance -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-4">
+      <div>
+        <h3 class="font-serif text-zinc-100 text-sm tracking-wider">Section-Wise Compliance</h3>
+        <p class="text-zinc-600 text-[10px] tracking-widest uppercase mt-0.5">Bar chart by department</p>
+      </div>
+      <div class="bg-zinc-950 border border-zinc-800/50 rounded p-3">
+        <canvas id="complianceBarChart" class="w-full" style="height: 260px;"></canvas>
+      </div>
+    </div>
+
+    <!-- Syllabus Progress by Section -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-4">
+      <div>
+        <h3 class="font-serif text-zinc-100 text-sm tracking-wider">Syllabus Progress by Section</h3>
+        <p class="text-zinc-600 text-[10px] tracking-widest uppercase mt-0.5">Current completion rates</p>
+      </div>
+      <div class="space-y-3">
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-zinc-300 text-xs">Pre-Medical</span>
+            <span class="font-mono text-emerald-400 text-xs">88%</span>
+          </div>
+          <div class="w-full bg-zinc-800 rounded-full h-2">
+            <div class="bg-emerald-500 h-2 rounded-full" style="width: 88%"></div>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-zinc-300 text-xs">Pre-Engineering</span>
+            <span class="font-mono text-amber-400 text-xs">72%</span>
+          </div>
+          <div class="w-full bg-zinc-800 rounded-full h-2">
+            <div class="bg-amber-500 h-2 rounded-full" style="width: 72%"></div>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-zinc-300 text-xs">ICS</span>
+            <span class="font-mono text-emerald-400 text-xs">84%</span>
+          </div>
+          <div class="w-full bg-zinc-800 rounded-full h-2">
+            <div class="bg-emerald-500 h-2 rounded-full" style="width: 84%"></div>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-zinc-300 text-xs">FA</span>
+            <span class="font-mono text-emerald-400 text-xs">91%</span>
+          </div>
+          <div class="w-full bg-zinc-800 rounded-full h-2">
+            <div class="bg-emerald-500 h-2 rounded-full" style="width: 91%"></div>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-zinc-300 text-xs">FSc General</span>
+            <span class="font-mono text-red-400 text-xs">61%</span>
+          </div>
+          <div class="w-full bg-zinc-800 rounded-full h-2">
+            <div class="bg-red-500 h-2 rounded-full" style="width: 61%"></div>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-zinc-300 text-xs">FA Islamiyat</span>
+            <span class="font-mono text-emerald-400 text-xs">95%</span>
+          </div>
+          <div class="w-full bg-zinc-800 rounded-full h-2">
+            <div class="bg-emerald-500 h-2 rounded-full" style="width: 95%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Audit Log -->
+  <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-4">
+    <div>
+      <h3 class="font-serif text-zinc-100 text-sm tracking-wider">Audit Log</h3>
+      <p class="text-zinc-600 text-[10px] tracking-widest uppercase mt-0.5">Recent compliance events</p>
+    </div>
+    <div class="space-y-0">
+      <div class="flex items-start gap-3 py-3 border-b border-zinc-800/50">
+        <span class="w-2 h-2 bg-emerald-500 rounded-full mt-1.5 shrink-0"></span>
+        <div class="flex-1 min-w-0">
+          <p class="text-zinc-200 text-xs">Dr. Saima Rashid completed all 4 scheduled lectures — Pre-Medical B</p>
+          <p class="text-zinc-500 text-[10px] mt-0.5 font-mono">2026-04-03 11:30 AM</p>
+        </div>
+        <span class="badge badge-active shrink-0">Compliant</span>
+      </div>
+      <div class="flex items-start gap-3 py-3 border-b border-zinc-800/50">
+        <span class="w-2 h-2 bg-emerald-500 rounded-full mt-1.5 shrink-0"></span>
+        <div class="flex-1 min-w-0">
+          <p class="text-zinc-200 text-xs">Prof. Naveed Ahmed marked attendance for all 4 lectures — Pre-Medical A</p>
+          <p class="text-zinc-500 text-[10px] mt-0.5 font-mono">2026-04-03 10:45 AM</p>
+        </div>
+        <span class="badge badge-active shrink-0">Compliant</span>
+      </div>
+      <div class="flex items-start gap-3 py-3 border-b border-zinc-800/50">
+        <span class="w-2 h-2 bg-amber-500 rounded-full mt-1.5 shrink-0"></span>
+        <div class="flex-1 min-w-0">
+          <p class="text-zinc-200 text-xs">Mr. Usman Khalid — 1 lecture unmarked in Pre-Engineering B</p>
+          <p class="text-zinc-500 text-[10px] mt-0.5 font-mono">2026-04-03 09:15 AM</p>
+        </div>
+        <span class="badge badge-warning shrink-0">Warning</span>
+      </div>
+      <div class="flex items-start gap-3 py-3 border-b border-zinc-800/50">
+        <span class="w-2 h-2 bg-amber-500 rounded-full mt-1.5 shrink-0"></span>
+        <div class="flex-1 min-w-0">
+          <p class="text-zinc-200 text-xs">Mr. Faisal Rehman — syllabus coverage at 68%, 8% behind target</p>
+          <p class="text-zinc-500 text-[10px] mt-0.5 font-mono">2026-04-02 03:00 PM</p>
+        </div>
+        <span class="badge badge-warning shrink-0">Warning</span>
+      </div>
+      <div class="flex items-start gap-3 py-3 border-b border-zinc-800/50">
+        <span class="w-2 h-2 bg-red-500 rounded-full mt-1.5 shrink-0"></span>
+        <div class="flex-1 min-w-0">
+          <p class="text-zinc-200 text-xs">Mr. Tariq Mehmood — 4 consecutive unmarked lectures, no attendance submitted</p>
+          <p class="text-zinc-500 text-[10px] mt-0.5 font-mono">2026-04-02 02:30 PM</p>
+        </div>
+        <span class="badge badge-critical shrink-0">Critical</span>
+      </div>
+      <div class="flex items-start gap-3 py-3 border-b border-zinc-800/50">
+        <span class="w-2 h-2 bg-emerald-500 rounded-full mt-1.5 shrink-0"></span>
+        <div class="flex-1 min-w-0">
+          <p class="text-zinc-200 text-xs">Ms. Fatima Zahra submitted weekly lecture logs — ICS A & B</p>
+          <p class="text-zinc-500 text-[10px] mt-0.5 font-mono">2026-04-02 01:00 PM</p>
+        </div>
+        <span class="badge badge-active shrink-0">Compliant</span>
+      </div>
+      <div class="flex items-start gap-3 py-3 border-b border-zinc-800/50">
+        <span class="w-2 h-2 bg-red-500 rounded-full mt-1.5 shrink-0"></span>
+        <div class="flex-1 min-w-0">
+          <p class="text-zinc-200 text-xs">FSc General section — overall syllabus dropped to 61%, 14% below minimum</p>
+          <p class="text-zinc-500 text-[10px] mt-0.5 font-mono">2026-04-01 04:00 PM</p>
+        </div>
+        <span class="badge badge-critical shrink-0">Critical</span>
+      </div>
+      <div class="flex items-start gap-3 py-3">
+        <span class="w-2 h-2 bg-emerald-500 rounded-full mt-1.5 shrink-0"></span>
+        <div class="flex-1 min-w-0">
+          <p class="text-zinc-200 text-xs">Dr. Ayesha Siddiqui — Friday compliance checklist completed on time</p>
+          <p class="text-zinc-500 text-[10px] mt-0.5 font-mono">2026-04-01 12:00 PM</p>
+        </div>
+        <span class="badge badge-active shrink-0">Compliant</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div id="page-faculty" class="page p-4 md:p-6 space-y-5">
+
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div>
+      <h2 class="font-serif text-zinc-100 text-sm tracking-wider">Faculty Directory</h2>
+      <p class="text-zinc-600 text-[10px] tracking-widest uppercase mt-0.5">Manage and monitor all teaching staff</p>
+    </div>
+    <div class="flex items-center gap-2">
+      <input type="text" placeholder="Search faculty..." class="bg-zinc-900 border border-zinc-700 text-zinc-100 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600 w-48">
+      <select class="bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs px-2.5 py-2 rounded focus:outline-none focus:border-emerald-600">
+        <option>All Departments</option>
+        <option>Pre-Medical</option>
+        <option>Pre-Engineering</option>
+        <option>ICS</option>
+        <option>General Science</option>
+        <option>FA</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Faculty Grid -->
+  <div id="facultyGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+    <!-- Faculty Card 1 -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-3 hover:border-zinc-700 transition-colors">
+      <div class="flex items-start justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-emerald-600/20 border border-emerald-600/40 flex items-center justify-center">
+            <span class="text-emerald-400 font-mono text-sm font-bold">NA</span>
+          </div>
+          <div>
+            <p class="text-zinc-100 text-sm font-medium">Prof. Naveed Ahmed</p>
+            <p class="text-zinc-500 text-[10px]">Physics — HOD</p>
+          </div>
+        </div>
+        <span class="badge badge-active">Active</span>
+      </div>
+      <span class="inline-block px-2 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-zinc-400 text-[10px] tracking-wider">Pre-Medical</span>
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-zinc-500 text-[10px] tracking-widest uppercase">Compliance</span>
+          <span class="font-mono text-emerald-400 text-xs">96.2%</span>
+        </div>
+        <div class="w-full bg-zinc-800 rounded-full h-1.5">
+          <div class="bg-emerald-500 h-1.5 rounded-full" style="width: 96.2%"></div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-zinc-500">Lectures today: <span class="font-mono text-zinc-300">4</span></span>
+        <span class="text-zinc-500 text-[10px] font-mono">Last: 10:30 AM</span>
+      </div>
+      <button class="btn-secondary w-full text-xs">VIEW PROFILE</button>
+    </div>
+
+    <!-- Faculty Card 2 -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-3 hover:border-zinc-700 transition-colors">
+      <div class="flex items-start justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-emerald-600/20 border border-emerald-600/40 flex items-center justify-center">
+            <span class="text-emerald-400 font-mono text-sm font-bold">SR</span>
+          </div>
+          <div>
+            <p class="text-zinc-100 text-sm font-medium">Dr. Saima Rashid</p>
+            <p class="text-zinc-500 text-[10px]">Biology — Senior Lecturer</p>
+          </div>
+        </div>
+        <span class="badge badge-active">Active</span>
+      </div>
+      <span class="inline-block px-2 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-zinc-400 text-[10px] tracking-wider">Pre-Medical</span>
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-zinc-500 text-[10px] tracking-widest uppercase">Compliance</span>
+          <span class="font-mono text-emerald-400 text-xs">94.8%</span>
+        </div>
+        <div class="w-full bg-zinc-800 rounded-full h-1.5">
+          <div class="bg-emerald-500 h-1.5 rounded-full" style="width: 94.8%"></div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-zinc-500">Lectures today: <span class="font-mono text-zinc-300">3</span></span>
+        <span class="text-zinc-500 text-[10px] font-mono">Last: 09:45 AM</span>
+      </div>
+      <button class="btn-secondary w-full text-xs">VIEW PROFILE</button>
+    </div>
+
+    <!-- Faculty Card 3 -->
+    <div class="bg-zinc-900 border border-red-900/40 p-4 space-y-3 hover:border-red-800/60 transition-colors">
+      <div class="flex items-start justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-red-600/20 border border-red-600/40 flex items-center justify-center">
+            <span class="text-red-400 font-mono text-sm font-bold">TM</span>
+          </div>
+          <div>
+            <p class="text-zinc-100 text-sm font-medium">Mr. Tariq Mehmood</p>
+            <p class="text-zinc-500 text-[10px]">Mathematics — Lecturer</p>
+          </div>
+        </div>
+        <span class="badge badge-critical">Critical</span>
+      </div>
+      <span class="inline-block px-2 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-zinc-400 text-[10px] tracking-wider">Pre-Engineering</span>
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-zinc-500 text-[10px] tracking-widest uppercase">Compliance</span>
+          <span class="font-mono text-red-500 text-xs">61.4%</span>
+        </div>
+        <div class="w-full bg-zinc-800 rounded-full h-1.5">
+          <div class="bg-red-500 h-1.5 rounded-full" style="width: 61.4%"></div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-zinc-500">Lectures today: <span class="font-mono text-red-400">0</span></span>
+        <span class="text-zinc-500 text-[10px] font-mono">Last: 2 days ago</span>
+      </div>
+      <button class="btn-secondary w-full text-xs">VIEW PROFILE</button>
+    </div>
+
+    <!-- Faculty Card 4 -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-3 hover:border-zinc-700 transition-colors">
+      <div class="flex items-start justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-emerald-600/20 border border-emerald-600/40 flex items-center justify-center">
+            <span class="text-emerald-400 font-mono text-sm font-bold">FZ</span>
+          </div>
+          <div>
+            <p class="text-zinc-100 text-sm font-medium">Ms. Fatima Zahra</p>
+            <p class="text-zinc-500 text-[10px]">Computer Science — Lecturer</p>
+          </div>
+        </div>
+        <span class="badge badge-active">Active</span>
+      </div>
+      <span class="inline-block px-2 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-zinc-400 text-[10px] tracking-wider">ICS</span>
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-zinc-500 text-[10px] tracking-widest uppercase">Compliance</span>
+          <span class="font-mono text-emerald-400 text-xs">91.7%</span>
+        </div>
+        <div class="w-full bg-zinc-800 rounded-full h-1.5">
+          <div class="bg-emerald-500 h-1.5 rounded-full" style="width: 91.7%"></div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-zinc-500">Lectures today: <span class="font-mono text-zinc-300">4</span></span>
+        <span class="text-zinc-500 text-[10px] font-mono">Last: 11:15 AM</span>
+      </div>
+      <button class="btn-secondary w-full text-xs">VIEW PROFILE</button>
+    </div>
+
+    <!-- Faculty Card 5 -->
+    <div class="bg-zinc-900 border border-amber-900/40 p-4 space-y-3 hover:border-amber-800/60 transition-colors">
+      <div class="flex items-start justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-amber-600/20 border border-amber-600/40 flex items-center justify-center">
+            <span class="text-amber-400 font-mono text-sm font-bold">UK</span>
+          </div>
+          <div>
+            <p class="text-zinc-100 text-sm font-medium">Mr. Usman Khalid</p>
+            <p class="text-zinc-500 text-[10px]">Chemistry — Lecturer</p>
+          </div>
+        </div>
+        <span class="badge badge-warning">Warning</span>
+      </div>
+      <span class="inline-block px-2 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-zinc-400 text-[10px] tracking-wider">Pre-Engineering</span>
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-zinc-500 text-[10px] tracking-widest uppercase">Compliance</span>
+          <span class="font-mono text-amber-400 text-xs">78.3%</span>
+        </div>
+        <div class="w-full bg-zinc-800 rounded-full h-1.5">
+          <div class="bg-amber-500 h-1.5 rounded-full" style="width: 78.3%"></div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-zinc-500">Lectures today: <span class="font-mono text-zinc-300">2</span></span>
+        <span class="text-zinc-500 text-[10px] font-mono">Last: 08:30 AM</span>
+      </div>
+      <button class="btn-secondary w-full text-xs">VIEW PROFILE</button>
+    </div>
+
+    <!-- Faculty Card 6 -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-3 hover:border-zinc-700 transition-colors">
+      <div class="flex items-start justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-emerald-600/20 border border-emerald-600/40 flex items-center justify-center">
+            <span class="text-emerald-400 font-mono text-sm font-bold">AU</span>
+          </div>
+          <div>
+            <p class="text-zinc-100 text-sm font-medium">Prof. Asad Ullah</p>
+            <p class="text-zinc-500 text-[10px]">General Science — HOD</p>
+          </div>
+        </div>
+        <span class="badge badge-active">Active</span>
+      </div>
+      <span class="inline-block px-2 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-zinc-400 text-[10px] tracking-wider">General Science</span>
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-zinc-500 text-[10px] tracking-widest uppercase">Compliance</span>
+          <span class="font-mono text-emerald-400 text-xs">93.1%</span>
+        </div>
+        <div class="w-full bg-zinc-800 rounded-full h-1.5">
+          <div class="bg-emerald-500 h-1.5 rounded-full" style="width: 93.1%"></div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-zinc-500">Lectures today: <span class="font-mono text-zinc-300">3</span></span>
+        <span class="text-zinc-500 text-[10px] font-mono">Last: 10:00 AM</span>
+      </div>
+      <button class="btn-secondary w-full text-xs">VIEW PROFILE</button>
+    </div>
+
+    <!-- Faculty Card 7 -->
+    <div class="bg-zinc-900 border border-amber-900/40 p-4 space-y-3 hover:border-amber-800/60 transition-colors">
+      <div class="flex items-start justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-amber-600/20 border border-amber-600/40 flex items-center justify-center">
+            <span class="text-amber-400 font-mono text-sm font-bold">FR</span>
+          </div>
+          <div>
+            <p class="text-zinc-100 text-sm font-medium">Mr. Faisal Rehman</p>
+            <p class="text-zinc-500 text-[10px]">Programming — Lecturer</p>
+          </div>
+        </div>
+        <span class="badge badge-warning">Warning</span>
+      </div>
+      <span class="inline-block px-2 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-zinc-400 text-[10px] tracking-wider">ICS</span>
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-zinc-500 text-[10px] tracking-widest uppercase">Compliance</span>
+          <span class="font-mono text-amber-400 text-xs">82.6%</span>
+        </div>
+        <div class="w-full bg-zinc-800 rounded-full h-1.5">
+          <div class="bg-amber-500 h-1.5 rounded-full" style="width: 82.6%"></div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-zinc-500">Lectures today: <span class="font-mono text-zinc-300">3</span></span>
+        <span class="text-zinc-500 text-[10px] font-mono">Last: 09:00 AM</span>
+      </div>
+      <button class="btn-secondary w-full text-xs">VIEW PROFILE</button>
+    </div>
+
+    <!-- Faculty Card 8 -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-3 hover:border-zinc-700 transition-colors">
+      <div class="flex items-start justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-emerald-600/20 border border-emerald-600/40 flex items-center justify-center">
+            <span class="text-emerald-400 font-mono text-sm font-bold">AS</span>
+          </div>
+          <div>
+            <p class="text-zinc-100 text-sm font-medium">Dr. Ayesha Siddiqui</p>
+            <p class="text-zinc-500 text-[10px]">Zoology — Senior Lecturer</p>
+          </div>
+        </div>
+        <span class="badge badge-active">Active</span>
+      </div>
+      <span class="inline-block px-2 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-zinc-400 text-[10px] tracking-wider">Pre-Medical</span>
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-zinc-500 text-[10px] tracking-widest uppercase">Compliance</span>
+          <span class="font-mono text-emerald-400 text-xs">97.5%</span>
+        </div>
+        <div class="w-full bg-zinc-800 rounded-full h-1.5">
+          <div class="bg-emerald-500 h-1.5 rounded-full" style="width: 97.5%"></div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-zinc-500">Lectures today: <span class="font-mono text-zinc-300">4</span></span>
+        <span class="text-zinc-500 text-[10px] font-mono">Last: 11:30 AM</span>
+      </div>
+      <button class="btn-secondary w-full text-xs">VIEW PROFILE</button>
+    </div>
+
+    <!-- Faculty Card 9 -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-3 hover:border-zinc-700 transition-colors">
+      <div class="flex items-start justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-emerald-600/20 border border-emerald-600/40 flex items-center justify-center">
+            <span class="text-emerald-400 font-mono text-sm font-bold">WK</span>
+          </div>
+          <div>
+            <p class="text-zinc-100 text-sm font-medium">Mr. Waqar Khan</p>
+            <p class="text-zinc-500 text-[10px]">English — Lecturer</p>
+          </div>
+        </div>
+        <span class="badge badge-active">Active</span>
+      </div>
+      <span class="inline-block px-2 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-zinc-400 text-[10px] tracking-wider">FA</span>
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <span class="text-zinc-500 text-[10px] tracking-widest uppercase">Compliance</span>
+          <span class="font-mono text-emerald-400 text-xs">89.4%</span>
+        </div>
+        <div class="w-full bg-zinc-800 rounded-full h-1.5">
+          <div class="bg-emerald-500 h-1.5 rounded-full" style="width: 89.4%"></div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-zinc-500">Lectures today: <span class="font-mono text-zinc-300">3</span></span>
+        <span class="text-zinc-500 text-[10px] font-mono">Last: 10:15 AM</span>
+      </div>
+      <button class="btn-secondary w-full text-xs">VIEW PROFILE</button>
+    </div>
+
+  </div>
+
+</div>
+<div id="page-reports" class="page p-4 md:p-6 space-y-5">
+
+  <!-- Header -->
+  <div>
+    <h2 class="font-serif text-zinc-100 text-sm tracking-wider">Reports & Analytics</h2>
+    <p class="text-zinc-600 text-[10px] tracking-widest uppercase mt-0.5">Generate and export institutional reports</p>
+  </div>
+
+  <!-- Report Type Cards -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-2 hover:border-zinc-700 transition-colors cursor-pointer group">
+      <div class="w-9 h-9 rounded bg-emerald-600/10 border border-emerald-600/30 flex items-center justify-center">
+        <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path></svg>
+      </div>
+      <p class="text-zinc-100 text-xs font-medium group-hover:text-emerald-400 transition-colors">Attendance Report</p>
+      <p class="text-zinc-500 text-[10px]">Daily / Weekly / Monthly</p>
+      <p class="text-zinc-600 text-[10px] leading-relaxed">Student and faculty attendance summaries with trend analysis</p>
+    </div>
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-2 hover:border-zinc-700 transition-colors cursor-pointer group">
+      <div class="w-9 h-9 rounded bg-cyan-600/10 border border-cyan-600/30 flex items-center justify-center">
+        <svg class="w-4 h-4 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+      </div>
+      <p class="text-zinc-100 text-xs font-medium group-hover:text-cyan-400 transition-colors">Compliance Report</p>
+      <p class="text-zinc-500 text-[10px]">Friday audits & logs</p>
+      <p class="text-zinc-600 text-[10px] leading-relaxed">Faculty compliance tracking with violation history</p>
+    </div>
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-2 hover:border-zinc-700 transition-colors cursor-pointer group">
+      <div class="w-9 h-9 rounded bg-amber-600/10 border border-amber-600/30 flex items-center justify-center">
+        <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+      </div>
+      <p class="text-zinc-100 text-xs font-medium group-hover:text-amber-400 transition-colors">Performance Report</p>
+      <p class="text-zinc-500 text-[10px]">Section & faculty metrics</p>
+      <p class="text-zinc-600 text-[10px] leading-relaxed">Comparative performance across departments and sections</p>
+    </div>
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-2 hover:border-zinc-700 transition-colors cursor-pointer group">
+      <div class="w-9 h-9 rounded bg-purple-600/10 border border-purple-600/30 flex items-center justify-center">
+        <svg class="w-4 h-4 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+      </div>
+      <p class="text-zinc-100 text-xs font-medium group-hover:text-purple-400 transition-colors">Syllabus Report</p>
+      <p class="text-zinc-500 text-[10px]">Coverage & progress</p>
+      <p class="text-zinc-600 text-[10px] leading-relaxed">Syllabus completion tracking against board requirements</p>
+    </div>
+  </div>
+
+  <!-- Report Generator -->
+  <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-4">
+    <div>
+      <h3 class="font-serif text-zinc-100 text-sm tracking-wider">Report Generator</h3>
+      <p class="text-zinc-600 text-[10px] tracking-widest uppercase mt-0.5">Configure and generate custom reports</p>
+    </div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div>
+        <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Report Type</label>
+        <select class="w-full bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600">
+          <option>Attendance Report</option>
+          <option>Compliance Report</option>
+          <option>Performance Report</option>
+          <option>Syllabus Report</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Department</label>
+        <select class="w-full bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600">
+          <option>All Departments</option>
+          <option>Pre-Medical</option>
+          <option>Pre-Engineering</option>
+          <option>ICS</option>
+          <option>FA</option>
+          <option>FSc General</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">From Date</label>
+        <input type="date" value="2026-03-01" class="w-full bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600 font-mono">
+      </div>
+      <div>
+        <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">To Date</label>
+        <input type="date" value="2026-04-03" class="w-full bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600 font-mono">
+      </div>
+      <div class="flex items-end">
+        <button class="btn-primary w-full">GENERATE REPORT</button>
+      </div>
+    </div>
+    <div class="flex items-center gap-2 pt-1">
+      <button class="btn-secondary text-xs">EXPORT PDF</button>
+      <button class="btn-secondary text-xs">EXPORT CSV</button>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+
+    <!-- Monthly Attendance Overview -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-4">
+      <div>
+        <h3 class="font-serif text-zinc-100 text-sm tracking-wider">Monthly Attendance Overview</h3>
+        <p class="text-zinc-600 text-[10px] tracking-widest uppercase mt-0.5">March 2026 summary</p>
+      </div>
+      <div class="bg-zinc-950 border border-zinc-800/50 rounded p-3">
+        <canvas id="reportAttendanceChart" class="w-full" style="height: 260px;"></canvas>
+      </div>
+    </div>
+
+    <!-- Section Performance Comparison -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-4">
+      <div>
+        <h3 class="font-serif text-zinc-100 text-sm tracking-wider">Section Performance Comparison</h3>
+        <p class="text-zinc-600 text-[10px] tracking-widest uppercase mt-0.5">Multi-metric analysis</p>
+      </div>
+      <div class="bg-zinc-950 border border-zinc-800/50 rounded p-3">
+        <canvas id="reportPerformanceChart" class="w-full" style="height: 260px;"></canvas>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Generated Reports List -->
+  <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-4">
+    <div>
+      <h3 class="font-serif text-zinc-100 text-sm tracking-wider">Generated Reports</h3>
+      <p class="text-zinc-600 text-[10px] tracking-widest uppercase mt-0.5">Previously generated reports</p>
+    </div>
+    <div class="space-y-0">
+      <div class="flex items-center justify-between py-3 border-b border-zinc-800/50">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded bg-emerald-600/10 border border-emerald-600/30 flex items-center justify-center">
+            <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          </div>
+          <div>
+            <p class="text-zinc-100 text-xs font-medium">Monthly Attendance Report — March 2026</p>
+            <p class="text-zinc-500 text-[10px] font-mono">Generated: 2026-04-01 09:00 AM</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btn-secondary text-[10px]">VIEW</button>
+          <button class="btn-secondary text-[10px]">DOWNLOAD</button>
+        </div>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-zinc-800/50">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded bg-cyan-600/10 border border-cyan-600/30 flex items-center justify-center">
+            <svg class="w-3.5 h-3.5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          </div>
+          <div>
+            <p class="text-zinc-100 text-xs font-medium">Friday Compliance Audit — Week 13</p>
+            <p class="text-zinc-500 text-[10px] font-mono">Generated: 2026-03-28 04:00 PM</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btn-secondary text-[10px]">VIEW</button>
+          <button class="btn-secondary text-[10px]">DOWNLOAD</button>
+        </div>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-zinc-800/50">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded bg-amber-600/10 border border-amber-600/30 flex items-center justify-center">
+            <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          </div>
+          <div>
+            <p class="text-zinc-100 text-xs font-medium">Section Performance Q1 2026</p>
+            <p class="text-zinc-500 text-[10px] font-mono">Generated: 2026-03-25 11:30 AM</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btn-secondary text-[10px]">VIEW</button>
+          <button class="btn-secondary text-[10px]">DOWNLOAD</button>
+        </div>
+      </div>
+      <div class="flex items-center justify-between py-3">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded bg-purple-600/10 border border-purple-600/30 flex items-center justify-center">
+            <svg class="w-3.5 h-3.5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+          </div>
+          <div>
+            <p class="text-zinc-100 text-xs font-medium">Syllabus Coverage Report — Pre-Medical</p>
+            <p class="text-zinc-500 text-[10px] font-mono">Generated: 2026-03-20 02:15 PM</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btn-secondary text-[10px]">VIEW</button>
+          <button class="btn-secondary text-[10px]">DOWNLOAD</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<div id="page-settings" class="page p-4 md:p-6 space-y-5">
+
+  <!-- Header -->
+  <div>
+    <h2 class="font-serif text-zinc-100 text-sm tracking-wider">System Settings</h2>
+    <p class="text-zinc-600 text-[10px] tracking-widest uppercase mt-0.5">Configure system preferences and manage users</p>
+  </div>
+
+  <!-- Tab Navigation -->
+  <div class="flex items-center gap-1 border-b border-zinc-800">
+    <button class="tab-btn active px-4 py-2 text-xs tracking-wider text-zinc-400 border-b-2 border-emerald-500 text-zinc-100" data-tab="tab-general">General</button>
+    <button class="tab-btn px-4 py-2 text-xs tracking-wider text-zinc-500 border-b-2 border-transparent hover:text-zinc-300" data-tab="tab-notifications">Notifications</button>
+    <button class="tab-btn px-4 py-2 text-xs tracking-wider text-zinc-500 border-b-2 border-transparent hover:text-zinc-300" data-tab="tab-users">Users</button>
+    <button class="tab-btn px-4 py-2 text-xs tracking-wider text-zinc-500 border-b-2 border-transparent hover:text-zinc-300" data-tab="tab-academic">Academic</button>
+  </div>
+
+  <!-- Tab: General -->
+  <div id="tab-general" class="tab-content active space-y-5">
+
+    <!-- College Information -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-4">
+      <h3 class="font-serif text-zinc-100 text-sm tracking-wider">College Information</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">College Name</label>
+          <input type="text" value="Govt. Post Graduate College, Rawalpindi" class="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600">
+        </div>
+        <div>
+          <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">EMIS Code</label>
+          <input type="text" value="35210401" class="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600 font-mono">
+        </div>
+        <div>
+          <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Principal Name</label>
+          <input type="text" value="Dr. Muhammad Ashraf" class="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600">
+        </div>
+        <div>
+          <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Contact Number</label>
+          <input type="text" value="051-9291234" class="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600 font-mono">
+        </div>
+        <div class="sm:col-span-2">
+          <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Address</label>
+          <input type="text" value="College Road, Satellite Town, Rawalpindi" class="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600">
+        </div>
+        <div>
+          <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Affiliated Board</label>
+          <select class="w-full bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600">
+            <option>FBISE — Islamabad</option>
+            <option>BISE Rawalpindi</option>
+            <option>BISE Lahore</option>
+            <option>BISE Multan</option>
+            <option>BISE Peshawar</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">College Type</label>
+          <select class="w-full bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600">
+            <option>Government</option>
+            <option>Private</option>
+            <option>Semi-Government</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- System Preferences -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-4">
+      <h3 class="font-serif text-zinc-100 text-sm tracking-wider">System Preferences</h3>
+      <div class="space-y-3">
+        <div class="flex items-center justify-between py-2 border-b border-zinc-800/50">
+          <div>
+            <p class="text-zinc-200 text-xs">Auto-sync Attendance</p>
+            <p class="text-zinc-500 text-[10px]">Automatically sync attendance data at end of day</p>
+          </div>
+          <div class="toggle-switch on" role="switch" aria-checked="true"><span></span></div>
+        </div>
+        <div class="flex items-center justify-between py-2 border-b border-zinc-800/50">
+          <div>
+            <p class="text-zinc-200 text-xs">Friday Compliance Alerts</p>
+            <p class="text-zinc-500 text-[10px]">Send compliance reminders every Friday at 12:00 PM</p>
+          </div>
+          <div class="toggle-switch on" role="switch" aria-checked="true"><span></span></div>
+        </div>
+        <div class="flex items-center justify-between py-2 border-b border-zinc-800/50">
+          <div>
+            <p class="text-zinc-200 text-xs">Critical Alert Notifications</p>
+            <p class="text-zinc-500 text-[10px]">Push notifications for critical compliance violations</p>
+          </div>
+          <div class="toggle-switch on" role="switch" aria-checked="true"><span></span></div>
+        </div>
+        <div class="flex items-center justify-between py-2 border-b border-zinc-800/50">
+          <div>
+            <p class="text-zinc-200 text-xs">Sound Alerts</p>
+            <p class="text-zinc-500 text-[10px]">Play sound for incoming critical alerts</p>
+          </div>
+          <div class="toggle-switch" role="switch" aria-checked="false"><span></span></div>
+        </div>
+        <div class="flex items-center justify-between py-2">
+          <div>
+            <p class="text-zinc-200 text-xs">Compact Mode</p>
+            <p class="text-zinc-500 text-[10px]">Reduce spacing for dense data display</p>
+          </div>
+          <div class="toggle-switch" role="switch" aria-checked="false"><span></span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Tab: Notifications -->
+  <div id="tab-notifications" class="tab-content space-y-5">
+
+    <!-- Notification Channels -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-4">
+      <h3 class="font-serif text-zinc-100 text-sm tracking-wider">Notification Channels</h3>
+      <div class="space-y-3">
+        <div class="flex items-center justify-between py-2 border-b border-zinc-800/50">
+          <div>
+            <p class="text-zinc-200 text-xs">Email Notifications</p>
+            <p class="text-zinc-500 text-[10px]">principal@govtpgcrawalpindi.edu.pk</p>
+          </div>
+          <div class="toggle-switch on" role="switch" aria-checked="true"><span></span></div>
+        </div>
+        <div class="flex items-center justify-between py-2 border-b border-zinc-800/50">
+          <div>
+            <p class="text-zinc-200 text-xs">SMS Notifications</p>
+            <p class="text-zinc-500 text-[10px]">Send SMS alerts to admin phone</p>
+          </div>
+          <div class="toggle-switch on" role="switch" aria-checked="true"><span></span></div>
+        </div>
+        <div class="flex items-center justify-between py-2">
+          <div>
+            <p class="text-zinc-200 text-xs">WhatsApp Notifications</p>
+            <p class="text-zinc-500 text-[10px]">Send alerts via WhatsApp Business API</p>
+          </div>
+          <div class="toggle-switch" role="switch" aria-checked="false"><span></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alert Thresholds -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-4">
+      <h3 class="font-serif text-zinc-100 text-sm tracking-wider">Alert Thresholds</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Absent Faculty Threshold</label>
+          <input type="number" value="2" class="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600 font-mono">
+          <p class="text-zinc-600 text-[10px] mt-1">Trigger alert after consecutive absent days</p>
+        </div>
+        <div>
+          <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Compliance Warning Level</label>
+          <input type="number" value="75" class="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600 font-mono">
+          <p class="text-zinc-600 text-[10px] mt-1">Warning when compliance drops below this %</p>
+        </div>
+        <div>
+          <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Student Absence Alert</label>
+          <input type="number" value="3" class="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600 font-mono">
+          <p class="text-zinc-600 text-[10px] mt-1">Flag student after consecutive absent days</p>
+        </div>
+        <div>
+          <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Syllabus Behind Threshold</label>
+          <input type="number" value="10" class="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600 font-mono">
+          <p class="text-zinc-600 text-[10px] mt-1">Alert when syllabus is behind by this %</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Notifications -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-4">
+      <h3 class="font-serif text-zinc-100 text-sm tracking-wider">Recent Notifications</h3>
+      <div class="space-y-0">
+        <div class="flex items-start gap-3 py-3 border-b border-zinc-800/50">
+          <span class="w-2 h-2 bg-red-500 rounded-full mt-1.5 shrink-0"></span>
+          <div class="flex-1">
+            <p class="text-zinc-200 text-xs">Critical: Mr. Tariq Mehmood absent for 3 consecutive days</p>
+            <p class="text-zinc-500 text-[10px] font-mono mt-0.5">2026-04-03 08:00 AM — SMS sent to admin</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 py-3 border-b border-zinc-800/50">
+          <span class="w-2 h-2 bg-amber-500 rounded-full mt-1.5 shrink-0"></span>
+          <div class="flex-1">
+            <p class="text-zinc-200 text-xs">Warning: Pre-Engineering syllabus coverage at 72%</p>
+            <p class="text-zinc-500 text-[10px] font-mono mt-0.5">2026-04-02 04:00 PM — Email sent to HOD</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 py-3 border-b border-zinc-800/50">
+          <span class="w-2 h-2 bg-emerald-500 rounded-full mt-1.5 shrink-0"></span>
+          <div class="flex-1">
+            <p class="text-zinc-200 text-xs">Friday compliance report generated — 87.3% overall</p>
+            <p class="text-zinc-500 text-[10px] font-mono mt-0.5">2026-03-28 12:15 PM — Email sent to principal</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-3 py-3">
+          <span class="w-2 h-2 bg-amber-500 rounded-full mt-1.5 shrink-0"></span>
+          <div class="flex-1">
+            <p class="text-zinc-200 text-xs">5 students flagged for 3+ consecutive absences in FSc General</p>
+            <p class="text-zinc-500 text-[10px] font-mono mt-0.5">2026-03-27 03:30 PM — SMS sent to admin</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Tab: Users -->
+  <div id="tab-users" class="tab-content space-y-5">
+
+    <!-- User Management Table -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="font-serif text-zinc-100 text-sm tracking-wider">User Management</h3>
+          <p class="text-zinc-600 text-[10px] tracking-widest uppercase mt-0.5">System access and roles</p>
+        </div>
+        <button class="btn-primary text-xs">+ ADD USER</button>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="text-zinc-500 text-[10px] tracking-widest uppercase border-b border-zinc-800">
+              <th class="text-left py-2 px-3 font-normal">Name</th>
+              <th class="text-left py-2 px-3 font-normal">Email</th>
+              <th class="text-left py-2 px-3 font-normal">Role</th>
+              <th class="text-left py-2 px-3 font-normal">Status</th>
+              <th class="text-left py-2 px-3 font-normal">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="text-zinc-300">
+            <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+              <td class="py-2.5 px-3 font-medium text-zinc-100">Dr. Muhammad Ashraf</td>
+              <td class="py-2.5 px-3 font-mono text-zinc-400 text-[11px]">principal@govtpgc.edu.pk</td>
+              <td class="py-2.5 px-3"><span class="px-2 py-0.5 bg-emerald-600/10 border border-emerald-600/30 rounded text-emerald-400 text-[10px]">Principal</span></td>
+              <td class="py-2.5 px-3"><span class="badge badge-active">Active</span></td>
+              <td class="py-2.5 px-3"><button class="text-zinc-500 hover:text-zinc-300 text-[10px]">Edit</button></td>
+            </tr>
+            <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+              <td class="py-2.5 px-3 font-medium text-zinc-100">Mr. Khalid Javed</td>
+              <td class="py-2.5 px-3 font-mono text-zinc-400 text-[11px]">vp@govtpgc.edu.pk</td>
+              <td class="py-2.5 px-3"><span class="px-2 py-0.5 bg-cyan-600/10 border border-cyan-600/30 rounded text-cyan-400 text-[10px]">Vice Principal</span></td>
+              <td class="py-2.5 px-3"><span class="badge badge-active">Active</span></td>
+              <td class="py-2.5 px-3"><button class="text-zinc-500 hover:text-zinc-300 text-[10px]">Edit</button></td>
+            </tr>
+            <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+              <td class="py-2.5 px-3 font-medium text-zinc-100">Mr. Imran Ali</td>
+              <td class="py-2.5 px-3 font-mono text-zinc-400 text-[11px]">admin@govtpgc.edu.pk</td>
+              <td class="py-2.5 px-3"><span class="px-2 py-0.5 bg-amber-600/10 border border-amber-600/30 rounded text-amber-400 text-[10px]">Admin</span></td>
+              <td class="py-2.5 px-3"><span class="badge badge-active">Active</span></td>
+              <td class="py-2.5 px-3"><button class="text-zinc-500 hover:text-zinc-300 text-[10px]">Edit</button></td>
+            </tr>
+            <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+              <td class="py-2.5 px-3 font-medium text-zinc-100">Ms. Rabia Noor</td>
+              <td class="py-2.5 px-3 font-mono text-zinc-400 text-[11px]">dataentry@govtpgc.edu.pk</td>
+              <td class="py-2.5 px-3"><span class="px-2 py-0.5 bg-zinc-700/50 border border-zinc-600/30 rounded text-zinc-400 text-[10px]">Data Entry</span></td>
+              <td class="py-2.5 px-3"><span class="badge badge-active">Active</span></td>
+              <td class="py-2.5 px-3"><button class="text-zinc-500 hover:text-zinc-300 text-[10px]">Edit</button></td>
+            </tr>
+            <tr class="hover:bg-zinc-800/30 opacity-50">
+              <td class="py-2.5 px-3 font-medium text-zinc-100">Mr. Shahid Iqbal</td>
+              <td class="py-2.5 px-3 font-mono text-zinc-400 text-[11px]">viewer@govtpgc.edu.pk</td>
+              <td class="py-2.5 px-3"><span class="px-2 py-0.5 bg-zinc-700/50 border border-zinc-600/30 rounded text-zinc-400 text-[10px]">View Only</span></td>
+              <td class="py-2.5 px-3"><span class="px-2 py-0.5 bg-zinc-800 border border-zinc-700 rounded text-zinc-500 text-[10px]">Disabled</span></td>
+              <td class="py-2.5 px-3"><button class="text-zinc-500 hover:text-zinc-300 text-[10px]">Edit</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Tab: Academic -->
+  <div id="tab-academic" class="tab-content space-y-5">
+
+    <!-- Academic Configuration -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-4">
+      <h3 class="font-serif text-zinc-100 text-sm tracking-wider">Academic Configuration</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div>
+          <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Session</label>
+          <input type="text" value="2025-2026" class="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600 font-mono">
+        </div>
+        <div>
+          <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Semester</label>
+          <select class="w-full bg-zinc-800 border border-zinc-700 text-zinc-300 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600">
+            <option>Spring 2026</option>
+            <option>Fall 2026</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Lectures Per Day</label>
+          <input type="number" value="6" class="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600 font-mono">
+        </div>
+        <div>
+          <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Lecture Duration (min)</label>
+          <input type="number" value="45" class="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600 font-mono">
+        </div>
+        <div>
+          <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Start Time</label>
+          <input type="time" value="08:00" class="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600 font-mono">
+        </div>
+        <div>
+          <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">End Time</label>
+          <input type="time" value="14:00" class="w-full bg-zinc-800 border border-zinc-700 text-zinc-100 text-xs px-3 py-2 rounded focus:outline-none focus:border-emerald-600 font-mono">
+        </div>
+      </div>
+    </div>
+
+    <!-- Section Management -->
+    <div class="bg-zinc-900 border border-zinc-800 p-4 space-y-4">
+      <h3 class="font-serif text-zinc-100 text-sm tracking-wider">Section Management</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="text-zinc-500 text-[10px] tracking-widest uppercase border-b border-zinc-800">
+              <th class="text-left py-2 px-3 font-normal">Section</th>
+              <th class="text-left py-2 px-3 font-normal">Students</th>
+              <th class="text-left py-2 px-3 font-normal">Faculty</th>
+              <th class="text-left py-2 px-3 font-normal">Avg. Attendance</th>
+              <th class="text-left py-2 px-3 font-normal">Compliance</th>
+            </tr>
+          </thead>
+          <tbody class="text-zinc-300">
+            <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+              <td class="py-2.5 px-3 font-medium text-zinc-100">Pre-Medical</td>
+              <td class="py-2.5 px-3 font-mono">480</td>
+              <td class="py-2.5 px-3 font-mono">14</td>
+              <td class="py-2.5 px-3 font-mono text-emerald-400">91.2%</td>
+              <td class="py-2.5 px-3 font-mono text-emerald-400">93.4%</td>
+            </tr>
+            <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+              <td class="py-2.5 px-3 font-medium text-zinc-100">Pre-Engineering</td>
+              <td class="py-2.5 px-3 font-mono">420</td>
+              <td class="py-2.5 px-3 font-mono">12</td>
+              <td class="py-2.5 px-3 font-mono text-amber-400">86.7%</td>
+              <td class="py-2.5 px-3 font-mono text-amber-400">81.2%</td>
+            </tr>
+            <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+              <td class="py-2.5 px-3 font-medium text-zinc-100">ICS</td>
+              <td class="py-2.5 px-3 font-mono">360</td>
+              <td class="py-2.5 px-3 font-mono">10</td>
+              <td class="py-2.5 px-3 font-mono text-emerald-400">89.5%</td>
+              <td class="py-2.5 px-3 font-mono text-emerald-400">88.1%</td>
+            </tr>
+            <tr class="border-b border-zinc-800/50 hover:bg-zinc-800/30">
+              <td class="py-2.5 px-3 font-medium text-zinc-100">FA</td>
+              <td class="py-2.5 px-3 font-mono">342</td>
+              <td class="py-2.5 px-3 font-mono">8</td>
+              <td class="py-2.5 px-3 font-mono text-emerald-400">92.1%</td>
+              <td class="py-2.5 px-3 font-mono text-emerald-400">94.3%</td>
+            </tr>
+            <tr class="hover:bg-zinc-800/30">
+              <td class="py-2.5 px-3 font-medium text-zinc-100">FSc General</td>
+              <td class="py-2.5 px-3 font-mono">240</td>
+              <td class="py-2.5 px-3 font-mono">6</td>
+              <td class="py-2.5 px-3 font-mono text-red-400">78.3%</td>
+              <td class="py-2.5 px-3 font-mono text-amber-400">76.8%</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+
+            <!-- ==================== DATA ENTRY PAGE ==================== -->
+            <div id="page-dataentry" class="page p-4 md:p-6 space-y-5">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <h3 class="font-serif text-zinc-100 text-sm tracking-wider">Data Entry</h3>
+                        <p class="text-zinc-600 text-[10px] tracking-widest uppercase mt-0.5">Manage faculty, students, attendance, and more</p>
+                    </div>
+                    <div id="dataEntryStatus" class="flex items-center gap-2 text-zinc-500 text-xs">
+                        <div class="w-2 h-2 bg-green-600"></div>
+                        <span>Ready</span>
+                    </div>
+                </div>
+
+                <div class="flex gap-0 border-b border-zinc-800">
+                    <button class="tab-btn active" data-detab="grid" onclick="switchDataEntryTab('grid')">Spreadsheet Grid</button>
+                    <button class="tab-btn" data-detab="form" onclick="switchDataEntryTab('form')">Form Entry</button>
+                    <button class="tab-btn" data-detab="upload" onclick="switchDataEntryTab('upload')">CSV Upload</button>
+                </div>
+
+                <!-- GRID TAB -->
+                <div id="detab-grid" class="tab-content active space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                        <div>
+                            <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Data Type</label>
+                            <select id="gridDataType" onchange="loadGridData()" class="text-xs w-48">
+                                <option value="faculty">Faculty</option>
+                                <option value="attendance">Student Attendance</option>
+                                <option value="faculty_attendance">Faculty Attendance</option>
+                                <option value="lectures">Lectures</option>
+                                <option value="syllabus">Syllabus Progress</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Department</label>
+                            <select id="gridDeptFilter" onchange="loadGridData()" class="text-xs w-48">
+                                <option value="all">All Departments</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Date</label>
+                            <input type="date" id="gridDate" class="text-xs" value="">
+                        </div>
+                        <div class="flex items-end gap-2">
+                            <button class="btn-primary" onclick="loadGridData()">LOAD</button>
+                            <button class="btn-secondary" onclick="saveGridData()">SAVE ALL</button>
+                        </div>
+                    </div>
+                    <div class="bg-zinc-900 border border-zinc-800 overflow-x-auto">
+                        <table class="w-full" id="gridTable">
+                            <thead id="gridHead"></thead>
+                            <tbody id="gridBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <p class="text-zinc-600 text-[10px] tracking-wider" id="gridCount">No data loaded</p>
+                        <button class="btn-secondary" onclick="addGridRow()">+ ADD ROW</button>
+                    </div>
+                </div>
+
+                <!-- FORM TAB -->
+                <div id="detab-form" class="tab-content space-y-4">
+                    <div>
+                        <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Entry Type</label>
+                        <select id="formType" onchange="renderForm()" class="text-xs w-48">
+                            <option value="faculty">Add Faculty</option>
+                            <option value="student">Add Student</option>
+                            <option value="attendance">Mark Attendance</option>
+                            <option value="lecture">Log Lecture</option>
+                            <option value="syllabus">Update Syllabus</option>
+                        </select>
+                    </div>
+                    <div id="formContainer" class="bg-zinc-900 border border-zinc-800 p-5"></div>
+                </div>
+
+                <!-- UPLOAD TAB -->
+                <div id="detab-upload" class="tab-content space-y-4">
+                    <div class="bg-zinc-900 border border-zinc-800 p-5">
+                        <h3 class="font-serif text-zinc-100 text-sm tracking-wider mb-2">Bulk Import via CSV</h3>
+                        <p class="text-zinc-600 text-[10px] tracking-widest uppercase mb-4">Upload a CSV file to bulk import data</p>
+                        <div class="mb-4">
+                            <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Import Type</label>
+                            <select id="uploadType" class="text-xs w-48">
+                                <option value="faculty">Faculty</option>
+                                <option value="students">Students</option>
+                                <option value="attendance">Student Attendance</option>
+                                <option value="faculty_attendance">Faculty Attendance</option>
+                                <option value="lectures">Lectures</option>
+                            </select>
+                        </div>
+                        <button class="btn-secondary mb-4" onclick="downloadTemplate()">Download CSV Template</button>
+                        <div id="dropZone" class="border-2 border-dashed border-zinc-700 p-8 text-center cursor-pointer hover:border-zinc-600 transition-colors" onclick="document.getElementById('csvFileInput').click()">
+                            <svg class="w-8 h-8 text-zinc-600 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                            <p class="text-zinc-400 text-xs">Drop CSV file here or click to browse</p>
+                            <p class="text-zinc-600 text-[10px] mt-1">Supports .csv files only</p>
+                            <input type="file" id="csvFileInput" accept=".csv" class="hidden" onchange="handleCSVUpload(event)">
+                        </div>
+                        <div id="uploadPreview" class="hidden mt-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <p class="text-zinc-300 text-xs" id="uploadFileName"></p>
+                                <p class="text-zinc-500 text-[10px]" id="uploadRowCount"></p>
+                            </div>
+                            <div class="bg-zinc-950 border border-zinc-800 max-h-64 overflow-y-auto">
+                                <table class="w-full text-xs">
+                                    <thead id="uploadPreviewHead" class="border-b border-zinc-800"></thead>
+                                    <tbody id="uploadPreviewBody"></tbody>
+                                </table>
+                            </div>
+                            <div class="flex items-center gap-2 mt-3">
+                                <button class="btn-primary" onclick="confirmCSVImport()">IMPORT DATA</button>
+                                <button class="btn-secondary" onclick="cancelCSVUpload()">CANCEL</button>
+                            </div>
+                        </div>
+                        <div id="uploadErrors" class="hidden mt-4 p-3 bg-blood/10 border border-blood/30 text-blood text-xs"></div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- Add User Modal -->
+    <div id="addUserModal" class="modal-overlay">
+        <div class="modal-box p-5">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-serif text-zinc-100 text-sm tracking-wider">Add New User</h3>
+                <button onclick="closeAddUserModal()" class="text-zinc-500 hover:text-zinc-300">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Full Name</label>
+                    <input type="text" class="w-full text-xs" placeholder="Enter full name">
+                </div>
+                <div>
+                    <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Email</label>
+                    <input type="email" class="w-full text-xs" placeholder="user@govtcollege.edu.pk">
+                </div>
+                <div>
+                    <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Role</label>
+                    <select class="w-full text-xs">
+                        <option>Principal</option>
+                        <option>Vice Principal</option>
+                        <option>Admin</option>
+                        <option>Data Entry</option>
+                        <option>View Only</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">Temporary Password</label>
+                    <input type="password" class="w-full text-xs" placeholder="Set initial password">
+                </div>
+            </div>
+            <div class="flex items-center gap-2 mt-5">
+                <button class="btn-primary" onclick="closeAddUserModal()">CREATE USER</button>
+                <button class="btn-secondary" onclick="closeAddUserModal()">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" class="fixed bottom-4 right-4 z-[300] space-y-2"></div>
+
+    <script>
+        // ============================================================
+        // SUPABASE CONFIG — Replace with your project credentials
+        // ============================================================
+        var SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        var SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        var USE_SUPABASE = false;
+        var supabase = null;
+
+        if (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && typeof window.supabase !== 'undefined') {
+            supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            USE_SUPABASE = true;
+        }
+
+        // Auth Guard
+        (async function authGuard() {
+            if (USE_SUPABASE) {
+                try {
+                    var session = await supabase.auth.getSession();
+                    if (!session.data.session) {
+                        Security.auditLog('unauthorized_access', { url: window.location.href });
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    var userResult = await supabase.from('users').select('role, college_id, department_id, full_name, email, is_active, locked_until').eq('id', session.data.session.user.id).single();
+                    if (userResult.error || !userResult.data) {
+                        Security.auditLog('profile_load_failed', { user_id: session.data.session.user.id });
+                        await supabase.auth.signOut();
+                        window.location.href = 'login.html';
+                        return;
+                    }
+                    if (!userResult.data.is_active) {
+                        await supabase.auth.signOut();
+                        window.location.href = 'login.html?reason=account_disabled';
+                        return;
+                    }
+                    Security.storeSecure(Security.CONFIG.userKey, {
+                        id: session.data.session.user.id,
+                        email: Security.sanitize(userResult.data.email),
+                        role: Security.sanitize(userResult.data.role),
+                        college_id: userResult.data.college_id,
+                        department_id: userResult.data.department_id,
+                        name: Security.sanitize(userResult.data.full_name)
+                    });
+                    Security.auditLog('session_validated', { role: userResult.data.role });
+                } catch (e) {
+                    console.warn('Auth guard error:', e);
+                    Security.auditLog('auth_guard_error', { message: e.message });
+                }
+            }
+            applyUserRole();
+        })();
+
+        function applyUserRole() {
+            var user = Security.retrieveSecure(Security.CONFIG.userKey);
+            if (!user) return;
+            try {
+                var nameEl = document.getElementById('headerUserName');
+                var initialsEl = document.getElementById('headerUserInitials');
+                if (nameEl) nameEl.textContent = Security.escapeHtml(user.name) || 'User';
+                if (initialsEl) initialsEl.textContent = (user.name || 'U').charAt(0).toUpperCase();
+
+                var role = user.role || 'principal';
+                var navItems = document.querySelectorAll('.nav-link');
+                navItems.forEach(function(link) {
+                    var page = link.dataset.page;
+                    var show = true;
+                    if (role === 'data_entry') {
+                        show = (page === 'dashboard' || page === 'attendance' || page === 'dataentry');
+                    } else if (role === 'viewer') {
+                        show = (page === 'dashboard' || page === 'attendance' || page === 'compliance' || page === 'faculty' || page === 'reports');
+                    } else if (role === 'faculty') {
+                        show = (page === 'dashboard' || page === 'attendance' || page === 'compliance' || page === 'dataentry');
+                    } else if (role === 'dept_head') {
+                        show = (page !== 'settings');
+                    }
+                    link.style.display = show ? '' : 'none';
+                });
+            } catch (e) {
+                Security.auditLog('role_apply_error', {});
+            }
+        }
+
+        async function handleLogout() {
+            Security.auditLog('logout', {});
+            await Security.flushAuditLog();
+            if (USE_SUPABASE) {
+                await supabase.auth.signOut();
+            }
+            Security.destroySession();
+            window.location.href = 'login.html';
+        }
+
+        // Toast Notifications
+        function showToast(message, type) {
+            var container = document.getElementById('toastContainer');
+            if (!container) return;
+            var safeMsg = Security.escapeHtml(message);
+            var colors = {
+                success: 'border-green-600/30 bg-zinc-900 text-green-400',
+                error: 'border-blood/30 bg-zinc-900 text-blood',
+                warning: 'border-yellow-600/30 bg-zinc-900 text-yellow-400',
+                info: 'border-zinc-700 bg-zinc-900 text-zinc-300'
+            };
+            var icons = { success: '\u2713', error: '\u2717', warning: '\u26A0', info: '\u2139' };
+            var toast = document.createElement('div');
+            toast.className = 'px-4 py-3 border ' + (colors[type] || colors.info) + ' text-xs font-mono tracking-wider flex items-center gap-2';
+            toast.innerHTML = '<span>' + (icons[type] || icons.info) + '</span><span>' + safeMsg + '</span>';
+            container.appendChild(toast);
+            setTimeout(function() {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(function() { toast.remove(); }, 300);
+            }, 3000);
+        }
+
+        // ============================================================
+        // GOOGLE SHEETS DATA LAYER
+        // Set SHEET_ID to your published Google Sheet ID.
+        // Leave empty to use built-in mock data.
+        // ============================================================
+        var SHEET_ID = '';
+
+        var MOCK_DATA = {
+            faculty: [
+                { name: 'Prof. Naveed Ahmed', dept: 'pre-medical', subject: 'Physics', specialty: 'FBISE Prep', compliance: 96.2, lectures: '4/4', status: 'active', lastActive: '10 min ago', phone: '+92 300 1234567', email: 'naveed.ahmed@govtcollege.edu.pk', qual: 'M.Phil Physics' },
+                { name: 'Dr. Saima Rashid', dept: 'pre-medical', subject: 'Chemistry', specialty: 'Organic Unit', compliance: 94.8, lectures: '3/3', status: 'active', lastActive: '25 min ago', phone: '+92 301 2345678', email: 'saima.rashid@govtcollege.edu.pk', qual: 'PhD Chemistry' },
+                { name: 'Mr. Tariq Mehmood', dept: 'pre-engineering', subject: 'Mathematics', specialty: 'Calculus', compliance: 61.4, lectures: '1/4', status: 'critical', lastActive: '3 days ago', phone: '+92 302 3456789', email: 'tariq.m@govtcollege.edu.pk', qual: 'MSc Mathematics' },
+                { name: 'Ms. Fatima Zahra', dept: 'pre-medical', subject: 'Biology', specialty: 'Human Physiology', compliance: 91.5, lectures: '3/3', status: 'active', lastActive: '1 hr ago', phone: '+92 303 4567890', email: 'fatima.z@govtcollege.edu.pk', qual: 'MSc Biology' },
+                { name: 'Mr. Usman Khalid', dept: 'general', subject: 'English', specialty: 'Grammar & Composition', compliance: 78.3, lectures: '2/3', status: 'warning', lastActive: '45 min ago', phone: '+92 304 5678901', email: 'usman.k@govtcollege.edu.pk', qual: 'MA English' },
+                { name: 'Prof. Asad Ullah', dept: 'ics', subject: 'Computer Science', specialty: 'Programming', compliance: 93.7, lectures: '4/4', status: 'active', lastActive: '5 min ago', phone: '+92 305 6789012', email: 'asad.ullah@govtcollege.edu.pk', qual: 'MCS' },
+                { name: 'Mr. Faisal Rehman', dept: 'pre-engineering', subject: 'Physics', specialty: 'Mechanics Unit', compliance: 74.1, lectures: '2/4', status: 'warning', lastActive: '2 hrs ago', phone: '+92 306 7890123', email: 'faisal.r@govtcollege.edu.pk', qual: 'MSc Physics' },
+                { name: 'Dr. Ayesha Siddiqui', dept: 'pre-medical', subject: 'Chemistry', specialty: 'Inorganic Unit', compliance: 97.1, lectures: '3/3', status: 'active', lastActive: '15 min ago', phone: '+92 307 8901234', email: 'ayesha.s@govtcollege.edu.pk', qual: 'PhD Chemistry' },
+                { name: 'Mr. Junaid Akram', dept: 'fa', subject: 'Urdu', specialty: 'Literature', compliance: 88.5, lectures: '3/3', status: 'active', lastActive: '30 min ago', phone: '+92 308 9012345', email: 'junaid.a@govtcollege.edu.pk', qual: 'MA Urdu' }
+            ],
+            attendance: [
+                { roll: 'PM-001', name: 'Abdullah Khan', section: 'Pre-Medical', time: '07:45 AM', status: 'present', remarks: '\u2014' },
+                { roll: 'PM-002', name: 'Ayesha Malik', section: 'Pre-Medical', time: '07:50 AM', status: 'present', remarks: '\u2014' },
+                { roll: 'PM-003', name: 'Bilal Hussain', section: 'Pre-Engineering', time: '\u2014', status: 'absent', remarks: '5th consecutive absence \u2014 flagged' },
+                { roll: 'PM-004', name: 'Daniyal Ahmed', section: 'Pre-Medical', time: '08:15 AM', status: 'late', remarks: 'Late by 15 minutes' },
+                { roll: 'PM-005', name: 'Fatima Noor', section: 'ICS', time: '07:40 AM', status: 'present', remarks: '\u2014' },
+                { roll: 'PM-006', name: 'Hamza Tariq', section: 'FSc General', time: '\u2014', status: 'absent', remarks: '2nd consecutive absence' },
+                { roll: 'PM-007', name: 'Ibrahim Shah', section: 'Pre-Engineering', time: '07:55 AM', status: 'present', remarks: '\u2014' },
+                { roll: 'PM-008', name: 'Khadija Begum', section: 'FA', time: '07:48 AM', status: 'present', remarks: '\u2014' },
+                { roll: 'PM-009', name: 'Muzammil Ali', section: 'Pre-Medical', time: '\u2014', status: 'absent', remarks: 'Medical leave \u2014 submitted' },
+                { roll: 'PM-010', name: 'Nadia Parveen', section: 'ICS', time: '08:20 AM', status: 'late', remarks: 'Late by 20 minutes' },
+                { roll: 'PM-011', name: 'Omar Farooq', section: 'Pre-Engineering', time: '07:42 AM', status: 'present', remarks: '\u2014' },
+                { roll: 'PM-012', name: 'Zainab Noor', section: 'FA', time: '\u2014', status: 'absent', remarks: '4th consecutive absence \u2014 flagged' }
+            ]
+        };
+
+        var APP_DATA = {
+            faculty: MOCK_DATA.faculty.slice(),
+            attendance: MOCK_DATA.attendance.slice()
+        };
+
+        function setLoading(msg) {
+            var el = document.getElementById('loadingStatus');
+            if (el) el.textContent = msg;
+        }
+
+        function hideLoading() {
+            var el = document.getElementById('loadingOverlay');
+            if (el) {
+                el.style.opacity = '0';
+                setTimeout(function() { el.style.display = 'none'; }, 500);
+            }
+        }
+
+        function parseCSV(text) {
+            var lines = text.trim().split('\n');
+            if (lines.length < 2) return [];
+            var headers = lines[0].split(',').map(function(h) { return h.trim().replace(/^"|"$/g, ''); });
+            var rows = [];
+            for (var i = 1; i < lines.length; i++) {
+                if (!lines[i].trim()) continue;
+                var vals = lines[i].split(',').map(function(v) { return v.trim().replace(/^"|"$/g, ''); });
+                var obj = {};
+                headers.forEach(function(h, idx) { obj[h] = vals[idx] || ''; });
+                rows.push(obj);
+            }
+            return rows;
+        }
+
+        function parseFacultyCSV(rows) {
+            return rows.map(function(r) {
+                return {
+                    name: r.name || '',
+                    dept: (r.dept || '').toLowerCase(),
+                    subject: r.subject || '',
+                    specialty: r.specialty || '',
+                    compliance: parseFloat(r.compliance) || 0,
+                    lectures: r.lectures || '0/0',
+                    status: (r.status || 'active').toLowerCase(),
+                    lastActive: r.lastActive || '',
+                    phone: r.phone || '',
+                    email: r.email || '',
+                    qual: r.qual || ''
+                };
+            });
+        }
+
+        function parseAttendanceCSV(rows) {
+            return rows.map(function(r) {
+                return {
+                    roll: r.roll || '',
+                    name: r.name || '',
+                    section: r.section || '',
+                    time: r.time || '\u2014',
+                    status: (r.status || 'present').toLowerCase(),
+                    remarks: r.remarks || '\u2014'
+                };
+            });
+        }
+
+        function fetchSheetData() {
+            if (!SHEET_ID) {
+                setLoading('No sheet ID set \u2014 using mock data');
+                setTimeout(function() { hideLoading(); }, 800);
+                return Promise.resolve();
+            }
+            setLoading('Fetching data from Google Sheets...');
+            var tabs = ['faculty', 'attendance'];
+            var promises = tabs.map(function(tab) {
+                var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&sheet=' + tab;
+                return fetch(url)
+                    .then(function(res) {
+                        if (!res.ok) throw new Error('Failed: ' + tab);
+                        return res.text();
+                    })
+                    .then(function(csv) {
+                        var rows = parseCSV(csv);
+                        if (tab === 'faculty') APP_DATA.faculty = parseFacultyCSV(rows);
+                        if (tab === 'attendance') APP_DATA.attendance = parseAttendanceCSV(rows);
+                    })
+                    .catch(function(err) {
+                        console.warn('Sheet fetch error for ' + tab + ':', err);
+                    });
+            });
+            return Promise.all(promises).then(function() {
+                setLoading('Data loaded successfully');
+                setTimeout(function() { hideLoading(); }, 600);
+            });
+        }
+
+        // Live Clock
+        function updateClock() {
+            var now = new Date();
+            var hours = String(now.getHours()).padStart(2, '0');
+            var minutes = String(now.getMinutes()).padStart(2, '0');
+            var seconds = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('liveClock').textContent = hours + ':' + minutes + ':' + seconds;
+            var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('liveDate').textContent = now.toLocaleDateString('en-PK', options).toUpperCase();
+        }
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        // Page Navigation
+        var subtitles = {
+            dashboard: 'Govt. College \u2014 Principal Dashboard',
+            attendance: 'Student Attendance \u2014 Daily Register',
+            compliance: 'Faculty & Curriculum Compliance Tracking',
+            faculty: 'Faculty Directory \u2014 Performance & Profiles',
+            reports: 'Reports & Analytics \u2014 Generate & Export',
+            settings: 'System Configuration & Preferences'
+        };
+
+        function navigateTo(page) {
+            document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+            document.getElementById('page-' + page).classList.add('active');
+            document.querySelectorAll('.nav-link').forEach(function(l) { l.classList.remove('active'); });
+            document.querySelector('.nav-link[data-page="' + page + '"]').classList.add('active');
+            document.getElementById('headerSubtitle').textContent = subtitles[page] || '';
+            initPageCharts(page);
+        }
+
+        document.querySelectorAll('.nav-link').forEach(function(link) {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                navigateTo(link.dataset.page);
+            });
+        });
+
+        // Chart instances
+        var chartInstances = {};
+
+        function destroyChart(id) {
+            if (chartInstances[id]) {
+                chartInstances[id].destroy();
+                delete chartInstances[id];
+            }
+        }
+
+        function initPageCharts(page) {
+            if (page === 'dashboard') initDashboardChart();
+            if (page === 'attendance') initAttendanceChart();
+            if (page === 'compliance') initComplianceBarChart();
+            if (page === 'reports') initReportCharts();
+        }
+
+        // Dashboard Chart
+        function initDashboardChart() {
+            destroyChart('complianceChart');
+            var ctx = document.getElementById('complianceChart');
+            if (!ctx) return;
+            var c = ctx.getContext('2d');
+            var g1 = c.createLinearGradient(0, 0, 0, 250);
+            g1.addColorStop(0, 'rgba(228, 228, 231, 0.12)');
+            g1.addColorStop(1, 'rgba(228, 228, 231, 0)');
+            var g2 = c.createLinearGradient(0, 0, 0, 250);
+            g2.addColorStop(0, 'rgba(0, 183, 235, 0.08)');
+            g2.addColorStop(1, 'rgba(0, 183, 235, 0)');
+            chartInstances.complianceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4', 'Week 5', 'Week 6', 'Week 7', 'Week 8'],
+                    datasets: [
+                        { label: 'Overall', data: [78.2, 80.5, 79.1, 82.4, 84.7, 83.9, 86.1, 87.3], borderColor: '#e4e4e7', backgroundColor: g1, borderWidth: 1.5, fill: true, tension: 0.3, pointRadius: 0, pointHoverRadius: 4, pointHoverBackgroundColor: '#e4e4e7', pointHoverBorderWidth: 1 },
+                        { label: 'Pre-Medical', data: [82.1, 84.3, 83.7, 86.2, 88.5, 87.8, 90.2, 91.4], borderColor: '#00b7eb', backgroundColor: g2, borderWidth: 1, fill: true, tension: 0.3, pointRadius: 0, pointHoverRadius: 3, pointHoverBackgroundColor: '#00b7eb', borderDash: [4, 2] },
+                        { label: 'Pre-Engineering', data: [71.4, 73.8, 72.1, 75.6, 77.2, 76.4, 78.9, 79.5], borderColor: '#52525b', borderWidth: 1, fill: false, tension: 0.3, pointRadius: 0, pointHoverRadius: 3, pointHoverBackgroundColor: '#52525b', borderDash: [2, 2] }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#18181b', titleColor: '#e4e4e7', bodyColor: '#a1a1aa', borderColor: '#27272a', borderWidth: 1, padding: 10, titleFont: { family: 'JetBrains Mono', size: 11, weight: '600' }, bodyFont: { family: 'JetBrains Mono', size: 10 }, displayColors: true, boxWidth: 8, boxHeight: 1, boxPadding: 4, callbacks: { label: function(c) { return ' ' + c.dataset.label + ': ' + c.parsed.y + '%'; } } } },
+                    scales: { x: { grid: { color: 'rgba(39, 39, 42, 0.5)', drawBorder: false }, ticks: { color: '#52525b', font: { family: 'JetBrains Mono', size: 9 }, padding: 8 }, border: { display: false } }, y: { min: 60, max: 100, grid: { color: 'rgba(39, 39, 42, 0.5)', drawBorder: false }, ticks: { color: '#52525b', font: { family: 'JetBrains Mono', size: 9 }, padding: 8, callback: function(v) { return v + '%'; }, stepSize: 10 }, border: { display: false } } }
+                }
+            });
+        }
+
+        // Attendance Chart
+        function initAttendanceChart() {
+            destroyChart('attendanceChart');
+            var ctx = document.getElementById('attendanceChart');
+            if (!ctx) return;
+            chartInstances.attendanceChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
+                    datasets: [
+                        { label: 'Present', data: [1650, 1680, 1620, 1640, 1621, 1580], backgroundColor: 'rgba(22, 163, 74, 0.3)', borderColor: '#16a34a', borderWidth: 1 },
+                        { label: 'Absent', data: [142, 120, 172, 155, 178, 210], backgroundColor: 'rgba(139, 0, 0, 0.3)', borderColor: '#8b0000', borderWidth: 1 },
+                        { label: 'Late', data: [50, 42, 50, 47, 43, 52], backgroundColor: 'rgba(234, 179, 8, 0.3)', borderColor: '#eab308', borderWidth: 1 }
+                    ]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#18181b', titleColor: '#e4e4e7', bodyColor: '#a1a1aa', borderColor: '#27272a', borderWidth: 1, padding: 10, titleFont: { family: 'JetBrains Mono', size: 11 }, bodyFont: { family: 'JetBrains Mono', size: 10 } } },
+                    scales: { x: { grid: { color: 'rgba(39, 39, 42, 0.5)', drawBorder: false }, ticks: { color: '#52525b', font: { family: 'JetBrains Mono', size: 9 } }, border: { display: false } }, y: { grid: { color: 'rgba(39, 39, 42, 0.5)', drawBorder: false }, ticks: { color: '#52525b', font: { family: 'JetBrains Mono', size: 9 } }, border: { display: false } } }
+                }
+            });
+        }
+
+        // Compliance Bar Chart
+        function initComplianceBarChart() {
+            destroyChart('complianceBarChart');
+            var ctx = document.getElementById('complianceBarChart');
+            if (!ctx) return;
+            chartInstances.complianceBarChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Pre-Med', 'Pre-Engg', 'ICS', 'FA', 'FSc Gen'],
+                    datasets: [{
+                        label: 'Compliance %',
+                        data: [91.4, 79.5, 88.2, 85.6, 72.3],
+                        backgroundColor: ['rgba(22, 163, 74, 0.3)', 'rgba(234, 179, 8, 0.3)', 'rgba(0, 183, 235, 0.3)', 'rgba(228, 228, 231, 0.2)', 'rgba(139, 0, 0, 0.3)'],
+                        borderColor: ['#16a34a', '#eab308', '#00b7eb', '#e4e4e7', '#8b0000'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+                    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#18181b', titleColor: '#e4e4e7', bodyColor: '#a1a1aa', borderColor: '#27272a', borderWidth: 1, padding: 10, titleFont: { family: 'JetBrains Mono', size: 11 }, bodyFont: { family: 'JetBrains Mono', size: 10 }, callbacks: { label: function(c) { return ' ' + c.parsed.x + '%'; } } } },
+                    scales: { x: { min: 60, max: 100, grid: { color: 'rgba(39, 39, 42, 0.5)', drawBorder: false }, ticks: { color: '#52525b', font: { family: 'JetBrains Mono', size: 9 }, callback: function(v) { return v + '%'; } }, border: { display: false } }, y: { grid: { display: false }, ticks: { color: '#a1a1aa', font: { family: 'JetBrains Mono', size: 9 } }, border: { display: false } } }
+                }
+            });
+        }
+
+        // Report Charts
+        function initReportCharts() {
+            destroyChart('reportAttendanceChart');
+            var ctx1 = document.getElementById('reportAttendanceChart');
+            if (ctx1) {
+                chartInstances.reportAttendanceChart = new Chart(ctx1, {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar'],
+                        datasets: [
+                            { label: 'Pre-Medical', data: [92, 90, 91], borderColor: '#e4e4e7', borderWidth: 1.5, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#e4e4e7' },
+                            { label: 'Pre-Engineering', data: [85, 83, 82], borderColor: '#00b7eb', borderWidth: 1, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#00b7eb' },
+                            { label: 'ICS', data: [88, 87, 89], borderColor: '#52525b', borderWidth: 1, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#52525b' },
+                            { label: 'FA', data: [78, 80, 82], borderColor: '#71717a', borderWidth: 1, tension: 0.3, pointRadius: 3, pointBackgroundColor: '#71717a' }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#18181b', titleColor: '#e4e4e7', bodyColor: '#a1a1aa', borderColor: '#27272a', borderWidth: 1, padding: 10, titleFont: { family: 'JetBrains Mono', size: 11 }, bodyFont: { family: 'JetBrains Mono', size: 10 }, callbacks: { label: function(c) { return ' ' + c.dataset.label + ': ' + c.parsed.y + '%'; } } } },
+                        scales: { x: { grid: { color: 'rgba(39, 39, 42, 0.5)', drawBorder: false }, ticks: { color: '#52525b', font: { family: 'JetBrains Mono', size: 9 } }, border: { display: false } }, y: { min: 70, max: 100, grid: { color: 'rgba(39, 39, 42, 0.5)', drawBorder: false }, ticks: { color: '#52525b', font: { family: 'JetBrains Mono', size: 9 }, callback: function(v) { return v + '%'; } }, border: { display: false } } }
+                    }
+                });
+            }
+
+            destroyChart('reportPerformanceChart');
+            var ctx2 = document.getElementById('reportPerformanceChart');
+            if (ctx2) {
+                chartInstances.reportPerformanceChart = new Chart(ctx2, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Attendance', 'Compliance', 'Syllabus', 'Discipline', 'Results'],
+                        datasets: [
+                            { label: 'Pre-Medical', data: [91, 94, 88, 85, 92], borderColor: '#e4e4e7', backgroundColor: 'rgba(228, 228, 231, 0.1)', borderWidth: 1, pointRadius: 2, pointBackgroundColor: '#e4e4e7' },
+                            { label: 'Pre-Engineering', data: [82, 79, 72, 78, 80], borderColor: '#00b7eb', backgroundColor: 'rgba(0, 183, 235, 0.08)', borderWidth: 1, pointRadius: 2, pointBackgroundColor: '#00b7eb' }
+                        ]
+                    },
+                    options: {
+                        responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { backgroundColor: '#18181b', titleColor: '#e4e4e7', bodyColor: '#a1a1aa', borderColor: '#27272a', borderWidth: 1, padding: 10, titleFont: { family: 'JetBrains Mono', size: 11 }, bodyFont: { family: 'JetBrains Mono', size: 10 } } },
+                        scales: { r: { grid: { color: 'rgba(39, 39, 42, 0.5)' }, angleLines: { color: 'rgba(39, 39, 42, 0.5)' }, pointLabels: { color: '#71717a', font: { family: 'JetBrains Mono', size: 9 } }, ticks: { display: false }, suggestedMin: 50, suggestedMax: 100 } }
+                    }
+                });
+            }
+        }
+
+        // Render Functions (use APP_DATA)
+        function renderAttendanceTable(data) {
+            var tbody = document.getElementById('attendanceTableBody');
+            if (!tbody) return;
+            var html = '';
+            data.forEach(function(r) {
+                html += '<tr class="hover:bg-zinc-800/30 transition-colors">';
+                html += '<td class="px-5 py-3.5 font-mono text-xs text-zinc-400">' + r.roll + '</td>';
+                html += '<td class="px-5 py-3.5 text-zinc-200 text-xs font-medium">' + r.name + '</td>';
+                html += '<td class="px-5 py-3.5 text-zinc-400 text-xs">' + r.section + '</td>';
+                html += '<td class="px-5 py-3.5 text-center font-mono text-xs ' + (r.time === '\u2014' ? 'text-zinc-600' : 'text-zinc-400') + '">' + r.time + '</td>';
+                html += '<td class="px-5 py-3.5 text-center"><span class="badge badge-' + r.status + '">' + r.status + '</span></td>';
+                html += '<td class="px-5 py-3.5 text-zinc-500 text-xs">' + r.remarks + '</td>';
+                html += '</tr>';
+            });
+            tbody.innerHTML = html;
+            var countEl = document.getElementById('attendanceCount');
+            if (countEl) countEl.textContent = 'Showing ' + data.length + ' of ' + APP_DATA.attendance.length + ' students';
+        }
+
+        function filterAttendance() {
+            var section = document.getElementById('sectionFilter').value;
+            var status = document.getElementById('statusFilter').value;
+            var filtered = APP_DATA.attendance.slice();
+            if (section !== 'all') {
+                var map = { 'pre-med': 'Pre-Medical', 'pre-eng': 'Pre-Engineering', 'ics': 'ICS', 'fa': 'FA', 'fsc': 'FSc General' };
+                filtered = filtered.filter(function(r) { return r.section === map[section]; });
+            }
+            if (status !== 'all') filtered = filtered.filter(function(r) { return r.status === status; });
+            renderAttendanceTable(filtered);
+        }
+
+        function renderFacultyGrid(data) {
+            var grid = document.getElementById('facultyGrid');
+            if (!grid) return;
+            var html = '';
+            data.forEach(function(f) {
+                var initials = f.name.split(' ').map(function(n) { return n[0]; }).join('').substring(0, 2);
+                var statusBadge = '<span class="badge badge-' + f.status + '">' + f.status.charAt(0).toUpperCase() + f.status.slice(1) + '</span>';
+                var barColor = f.compliance >= 90 ? 'bg-green-500' : (f.compliance >= 75 ? 'bg-yellow-500' : 'bg-blood');
+                var textColor = f.compliance >= 90 ? 'text-zinc-200' : (f.compliance >= 75 ? 'text-yellow-500' : 'text-blood');
+                var deptLabel = f.dept.replace('pre-medical', 'Pre-Medical').replace('pre-engineering', 'Pre-Engineering').replace('ics', 'ICS').replace('fa', 'FA').replace('general', 'Gen. Science');
+                html += '<div class="bg-zinc-900 border border-zinc-800 p-4 hover:border-zinc-700 transition-colors">';
+                html += '<div class="flex items-start gap-3 mb-3">';
+                html += '<div class="w-10 h-10 bg-zinc-800 border border-zinc-700 flex items-center justify-center shrink-0">';
+                html += '<span class="text-zinc-300 text-xs font-serif font-bold">' + initials + '</span>';
+                html += '</div>';
+                html += '<div class="flex-1 min-w-0">';
+                html += '<p class="text-zinc-200 text-xs font-medium truncate">' + f.name + '</p>';
+                html += '<p class="text-zinc-600 text-[10px]">' + f.subject + ' \u2014 ' + f.specialty + '</p>';
+                html += '</div>';
+                html += '</div>';
+                html += '<div class="flex items-center justify-between mb-2">';
+                html += '<span class="text-zinc-500 text-[10px] tracking-wider uppercase">' + deptLabel + '</span>';
+                html += statusBadge;
+                html += '</div>';
+                html += '<div class="flex items-center justify-between mb-1">';
+                html += '<span class="text-zinc-500 text-[10px]">Compliance</span>';
+                html += '<span class="font-mono text-xs ' + textColor + '">' + f.compliance + '%</span>';
+                html += '</div>';
+                html += '<div class="w-full bg-zinc-800 h-1 mb-3"><div class="' + barColor + ' h-1" style="width:' + f.compliance + '%"></div></div>';
+                html += '<div class="flex items-center justify-between text-[10px] text-zinc-500 mb-3">';
+                html += '<span>Lectures: ' + f.lectures + '</span>';
+                html += '<span>' + f.lastActive + '</span>';
+                html += '</div>';
+                html += '<button class="btn-secondary w-full text-center" onclick="showFacultyProfile(\'' + f.name.replace(/'/g, "\\'") + '\')">VIEW PROFILE</button>';
+                html += '</div>';
+            });
+            grid.innerHTML = html;
+        }
+
+        function filterFaculty() {
+            var search = document.getElementById('facultySearch').value.toLowerCase();
+            var dept = document.getElementById('facultyDeptFilter').value;
+            var filtered = APP_DATA.faculty.filter(function(f) {
+                var matchSearch = !search || f.name.toLowerCase().indexOf(search) !== -1 || f.subject.toLowerCase().indexOf(search) !== -1;
+                var matchDept = dept === 'all' || f.dept === dept;
+                return matchSearch && matchDept;
+            });
+            renderFacultyGrid(filtered);
+        }
+
+        function showFacultyProfile(name) {
+            var f = APP_DATA.faculty.find(function(x) { return x.name === name; });
+            if (!f) return;
+            alert('PROFILE: ' + f.name + '\nQualification: ' + f.qual + '\nSubject: ' + f.subject + ' \u2014 ' + f.specialty + '\nCompliance: ' + f.compliance + '%\nPhone: ' + f.phone + '\nEmail: ' + f.email);
+        }
+
+        // Settings Tabs
+        function switchSettingsTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+            document.getElementById('tab-' + tab).classList.add('active');
+            document.querySelector('.tab-btn[data-tab="' + tab + '"]').classList.add('active');
+        }
+
+        // Modal
+        function showAddUserModal() {
+            document.getElementById('addUserModal').classList.add('show');
+        }
+        function closeAddUserModal() {
+            document.getElementById('addUserModal').classList.remove('show');
+        }
+
+        // Actions
+        function saveSettings() {
+            alert('Settings saved successfully.');
+        }
+        function refreshCompliance() {
+            setLoading('Refreshing data...');
+            document.getElementById('loadingOverlay').style.display = 'flex';
+            document.getElementById('loadingOverlay').style.opacity = '1';
+            fetchSheetData().then(function() {
+                renderAttendanceTable(APP_DATA.attendance);
+                renderFacultyGrid(APP_DATA.faculty);
+            });
+        }
+        function generateReport(type) {
+            alert('Generating ' + type + ' report...');
+        }
+        function generateCustomReport() {
+            alert('Custom report generated. Check the Generated Reports section below.');
+        }
+        function exportReport(format) {
+            alert('Exporting report as ' + format.toUpperCase() + '...');
+        }
+
+        // ============================================================
+        // DATA ENTRY — Spreadsheet Grid
+        // ============================================================
+        var gridColumns = {
+            faculty: [
+                { key: 'name', label: 'Name', editable: true },
+                { key: 'subject', label: 'Subject', editable: true },
+                { key: 'specialty', label: 'Specialty', editable: true },
+                { key: 'dept', label: 'Department', editable: true },
+                { key: 'designation', label: 'Designation', editable: true },
+                { key: 'qualification', label: 'Qualification', editable: true },
+                { key: 'phone', label: 'Phone', editable: true },
+                { key: 'email', label: 'Email', editable: true },
+                { key: 'compliance', label: 'Compliance %', editable: true },
+                { key: 'status', label: 'Status', editable: true }
+            ],
+            attendance: [
+                { key: 'roll', label: 'Roll No.', editable: true },
+                { key: 'name', label: 'Student Name', editable: true },
+                { key: 'section', label: 'Section', editable: true },
+                { key: 'time', label: 'Time In', editable: true },
+                { key: 'status', label: 'Status', editable: true },
+                { key: 'remarks', label: 'Remarks', editable: true }
+            ],
+            faculty_attendance: [
+                { key: 'name', label: 'Faculty Name', editable: false },
+                { key: 'time_in', label: 'Time In', editable: true },
+                { key: 'time_out', label: 'Time Out', editable: true },
+                { key: 'status', label: 'Status', editable: true },
+                { key: 'remarks', label: 'Remarks', editable: true }
+            ],
+            lectures: [
+                { key: 'faculty', label: 'Faculty', editable: true },
+                { key: 'section', label: 'Section', editable: true },
+                { key: 'subject', label: 'Subject', editable: true },
+                { key: 'period', label: 'Period #', editable: true },
+                { key: 'topic', label: 'Topic Covered', editable: true },
+                { key: 'status', label: 'Status', editable: true }
+            ],
+            syllabus: [
+                { key: 'section', label: 'Section', editable: true },
+                { key: 'subject', label: 'Subject', editable: true },
+                { key: 'chapter', label: 'Chapter', editable: true },
+                { key: 'total', label: 'Total Topics', editable: true },
+                { key: 'completed', label: 'Completed', editable: true },
+                { key: 'pct', label: '%', editable: false }
+            ]
+        };
+
+        var gridData = [];
+
+        function switchDataEntryTab(tab) {
+            document.querySelectorAll('#page-dataentry .tab-content').forEach(function(t) { t.classList.remove('active'); });
+            document.querySelectorAll('#page-dataentry .tab-btn').forEach(function(b) { b.classList.remove('active'); });
+            document.getElementById('detab-' + tab).classList.add('active');
+            document.querySelector('#page-dataentry .tab-btn[data-detab="' + tab + '"]').classList.add('active');
+            if (tab === 'form') renderForm();
+        }
+
+        function loadGridData() {
+            var type = document.getElementById('gridDataType').value;
+            var dept = document.getElementById('gridDeptFilter').value;
+            var date = document.getElementById('gridDate').value;
+            var cols = gridColumns[type] || [];
+            var head = document.getElementById('gridHead');
+            var body = document.getElementById('gridBody');
+
+            // Build header
+            var html = '<tr class="border-b border-zinc-800">';
+            html += '<th class="text-left px-4 py-3 font-serif text-zinc-500 text-[10px] tracking-widest uppercase font-medium w-8">#</th>';
+            html += '<th class="text-center px-4 py-3 font-serif text-zinc-500 text-[10px] tracking-widest uppercase font-medium w-8">X</th>';
+            cols.forEach(function(c) {
+                html += '<th class="text-left px-4 py-3 font-serif text-zinc-500 text-[10px] tracking-widest uppercase font-medium">' + c.label + '</th>';
+            });
+            html += '</tr>';
+            head.innerHTML = html;
+
+            // Build data from APP_DATA
+            gridData = [];
+            if (type === 'faculty') {
+                var fac = APP_DATA.faculty.slice();
+                if (dept !== 'all') fac = fac.filter(function(f) { return f.dept === dept; });
+                gridData = fac.map(function(f) {
+                    return {
+                        name: f.name, subject: f.subject, specialty: f.specialty,
+                        dept: f.dept, designation: '', qualification: f.qual || '',
+                        phone: f.phone || '', email: f.email || '',
+                        compliance: f.compliance, status: f.status
+                    };
+                });
+            } else if (type === 'attendance') {
+                var att = APP_DATA.attendance.slice();
+                if (dept !== 'all') {
+                    var map = { 'pre-med': 'Pre-Medical', 'pre-eng': 'Pre-Engineering', 'ics': 'ICS', 'fa': 'FA', 'fsc': 'FSc General' };
+                    att = att.filter(function(r) { return r.section === map[dept]; });
+                }
+                gridData = att.map(function(r) {
+                    return { roll: r.roll, name: r.name, section: r.section, time: r.time, status: r.status, remarks: r.remarks };
+                });
+            }
+
+            renderGridBody();
+        }
+
+        function renderGridBody() {
+            var type = document.getElementById('gridDataType').value;
+            var cols = gridColumns[type] || [];
+            var body = document.getElementById('gridBody');
+            var html = '';
+            gridData.forEach(function(row, idx) {
+                html += '<tr class="border-b border-zinc-800/50 hover:bg-zinc-800/20">';
+                html += '<td class="px-4 py-2 text-zinc-600 text-[10px] font-mono">' + (idx + 1) + '</td>';
+                html += '<td class="px-4 py-2 text-center"><button class="text-blood text-xs hover:text-red-400" onclick="deleteGridRow(' + idx + ')">&times;</button></td>';
+                cols.forEach(function(c) {
+                    if (c.editable) {
+                        var val = row[c.key] !== undefined ? row[c.key] : '';
+                        if (c.key === 'status') {
+                            html += '<td class="px-2 py-1"><select class="w-full text-xs bg-transparent border-none outline-none" onchange="gridData[' + idx + '][\'' + c.key + '\']=this.value">';
+                            var opts = c.key === 'status' ? ['active', 'warning', 'critical', 'absent'] : ['present', 'absent', 'late', 'leave', 'delivered', 'cancelled', 'substituted'];
+                            opts.forEach(function(o) { html += '<option value="' + o + '"' + (val === o ? ' selected' : '') + '>' + o + '</option>'; });
+                            html += '</select></td>';
+                        } else if (c.key === 'compliance') {
+                            html += '<td class="px-2 py-1"><input type="number" class="w-full text-xs bg-transparent border-none outline-none font-mono" value="' + val + '" min="0" max="100" onchange="gridData[' + idx + '][\'' + c.key + '\']=parseFloat(this.value)||0"></td>';
+                        } else {
+                            html += '<td class="px-2 py-1"><input type="text" class="w-full text-xs bg-transparent border-none outline-none" value="' + val + '" onchange="gridData[' + idx + '][\'' + c.key + '\']=this.value"></td>';
+                        }
+                    } else {
+                        html += '<td class="px-4 py-2 text-zinc-400 text-xs">' + (row[c.key] || '\u2014') + '</td>';
+                    }
+                });
+                html += '</tr>';
+            });
+            body.innerHTML = html;
+            document.getElementById('gridCount').textContent = 'Showing ' + gridData.length + ' records';
+        }
+
+        function addGridRow() {
+            var type = document.getElementById('gridDataType').value;
+            var cols = gridColumns[type] || [];
+            var newRow = {};
+            cols.forEach(function(c) { newRow[c.key] = ''; });
+            gridData.push(newRow);
+            renderGridBody();
+        }
+
+        function deleteGridRow(idx) {
+            gridData.splice(idx, 1);
+            renderGridBody();
+        }
+
+        function saveGridData() {
+            var type = document.getElementById('gridDataType').value;
+            if (type === 'faculty') {
+                gridData.forEach(function(row) {
+                    var existing = APP_DATA.faculty.find(function(f) { return f.name === row.name; });
+                    if (existing) {
+                        existing.subject = row.subject;
+                        existing.specialty = row.specialty;
+                        existing.compliance = row.compliance;
+                        existing.status = row.status;
+                        existing.phone = row.phone;
+                        existing.email = row.email;
+                    }
+                });
+                renderFacultyGrid(APP_DATA.faculty);
+            } else if (type === 'attendance') {
+                APP_DATA.attendance = gridData.map(function(r) {
+                    return { roll: r.roll, name: r.name, section: r.section, time: r.time, status: r.status, remarks: r.remarks };
+                });
+                renderAttendanceTable(APP_DATA.attendance);
+            }
+            setDataEntryStatus('Saved ' + gridData.length + ' records', 'green');
+            showToast('Saved ' + gridData.length + ' records', 'success');
+        }
+
+        function setDataEntryStatus(msg, color) {
+            var el = document.getElementById('dataEntryStatus');
+            el.innerHTML = '<div class="w-2 h-2 bg-' + (color || 'green') + '-600"></div><span>' + msg + '</span>';
+        }
+
+        // ============================================================
+        // DATA ENTRY — Form Entry
+        // ============================================================
+        function renderForm() {
+            var type = document.getElementById('formType').value;
+            var container = document.getElementById('formContainer');
+            var html = '';
+
+            if (type === 'faculty') {
+                html = '<h3 class="font-serif text-zinc-100 text-sm tracking-wider mb-4">Add New Faculty</h3>';
+                html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+                html += formField('Full Name', 'form_name', 'text', 'Enter full name');
+                html += formField('Subject', 'form_subject', 'text', 'e.g. Physics');
+                html += formField('Specialty', 'form_specialty', 'text', 'e.g. FBISE Prep');
+                html += formSelect('Department', 'form_dept', [
+                    { v: 'pre-medical', l: 'Pre-Medical' }, { v: 'pre-engineering', l: 'Pre-Engineering' },
+                    { v: 'ics', l: 'ICS' }, { v: 'fa', l: 'FA' }, { v: 'general', l: 'General Science' }
+                ]);
+                html += formSelect('Designation', 'form_designation', [
+                    { v: 'Professor', l: 'Professor' }, { v: 'Associate Professor', l: 'Associate Professor' },
+                    { v: 'Assistant Professor', l: 'Assistant Professor' }, { v: 'Lecturer', l: 'Lecturer' },
+                    { v: 'SST', l: 'SST' }, { v: 'CT', l: 'CT' }
+                ]);
+                html += formField('Qualification', 'form_qual', 'text', 'e.g. M.Phil Physics');
+                html += formField('Phone', 'form_phone', 'text', '+92 300 1234567');
+                html += formField('Email', 'form_email', 'email', 'faculty@govtcollege.edu.pk');
+                html += '</div>';
+                html += '<button class="btn-primary mt-4" onclick="submitFacultyForm()">ADD FACULTY</button>';
+            } else if (type === 'student') {
+                html = '<h3 class="font-serif text-zinc-100 text-sm tracking-wider mb-4">Add New Student</h3>';
+                html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+                html += formField('Student Name', 'form_sname', 'text', 'Enter student name');
+                html += formField("Father's Name", 'form_fname', 'text', "Enter father's name");
+                html += formSelect('Gender', 'form_gender', [{ v: 'male', l: 'Male' }, { v: 'female', l: 'Female' }]);
+                html += formField('City', 'form_city', 'text', 'e.g. Lahore');
+                html += formField('Matric Roll No.', 'form_mroll', 'text', '');
+                html += formField('Matric Marks', 'form_mmarks', 'number', 'e.g. 850');
+                html += formField('Matric Total', 'form_mtotal', 'number', '1100');
+                html += formField('Matric Year', 'form_myear', 'number', '2024');
+                html += '</div>';
+                html += '<button class="btn-primary mt-4" onclick="submitStudentForm()">ADD STUDENT</button>';
+            } else if (type === 'attendance') {
+                html = '<h3 class="font-serif text-zinc-100 text-sm tracking-wider mb-4">Mark Student Attendance</h3>';
+                html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+                html += formField('Date', 'form_att_date', 'date', '');
+                html += formField('Roll No.', 'form_att_roll', 'text', 'e.g. PM-001');
+                html += formField('Student Name', 'form_att_name', 'text', 'Enter name');
+                html += formSelect('Section', 'form_att_section', [
+                    { v: 'Pre-Medical', l: 'Pre-Medical' }, { v: 'Pre-Engineering', l: 'Pre-Engineering' },
+                    { v: 'ICS', l: 'ICS' }, { v: 'FA', l: 'FA' }, { v: 'FSc General', l: 'FSc General' }
+                ]);
+                html += formField('Time In', 'form_att_time', 'text', 'e.g. 07:45 AM');
+                html += formSelect('Status', 'form_att_status', [
+                    { v: 'present', l: 'Present' }, { v: 'absent', l: 'Absent' },
+                    { v: 'late', l: 'Late' }, { v: 'leave', l: 'On Leave' }
+                ]);
+                html += '</div>';
+                html += formField('Remarks', 'form_att_remarks', 'text', 'Optional remarks');
+                html += '<button class="btn-primary mt-4" onclick="submitAttendanceForm()">MARK ATTENDANCE</button>';
+            } else if (type === 'lecture') {
+                html = '<h3 class="font-serif text-zinc-100 text-sm tracking-wider mb-4">Log Lecture</h3>';
+                html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+                html += formField('Date', 'form_lec_date', 'date', '');
+                html += formField('Faculty Name', 'form_lec_faculty', 'text', 'Enter faculty name');
+                html += formField('Section', 'form_lec_section', 'text', 'e.g. Pre-Medical A');
+                html += formField('Subject', 'form_lec_subject', 'text', 'e.g. Physics');
+                html += formField('Period #', 'form_lec_period', 'number', '1-6');
+                html += formSelect('Status', 'form_lec_status', [
+                    { v: 'delivered', l: 'Delivered' }, { v: 'cancelled', l: 'Cancelled' },
+                    { v: 'substituted', l: 'Substituted' }
+                ]);
+                html += '</div>';
+                html += formField('Topic Covered', 'form_lec_topic', 'text', 'What was taught');
+                html += '<button class="btn-primary mt-4" onclick="submitLectureForm()">LOG LECTURE</button>';
+            } else if (type === 'syllabus') {
+                html = '<h3 class="font-serif text-zinc-100 text-sm tracking-wider mb-4">Update Syllabus Progress</h3>';
+                html += '<div class="grid grid-cols-1 md:grid-cols-2 gap-4">';
+                html += formField('Section', 'form_syl_section', 'text', 'e.g. Pre-Medical A');
+                html += formField('Subject', 'form_syl_subject', 'text', 'e.g. Physics');
+                html += formField('Chapter Name', 'form_syl_chapter', 'text', 'e.g. Optics');
+                html += formField('Chapter #', 'form_syl_num', 'number', '');
+                html += formField('Total Topics', 'form_syl_total', 'number', '');
+                html += formField('Completed Topics', 'form_syl_done', 'number', '');
+                html += '</div>';
+                html += '<button class="btn-primary mt-4" onclick="submitSyllabusForm()">UPDATE SYLLABUS</button>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        function formField(label, id, type, placeholder) {
+            return '<div><label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">' + label + '</label><input type="' + type + '" id="' + id + '" class="w-full text-xs" placeholder="' + placeholder + '"></div>';
+        }
+
+        function formSelect(label, id, options) {
+            var html = '<div><label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-1">' + label + '</label><select id="' + id + '" class="w-full text-xs">';
+            options.forEach(function(o) { html += '<option value="' + o.v + '">' + o.l + '</option>'; });
+            html += '</select></div>';
+            return html;
+        }
+
+        function submitFacultyForm() {
+            var name = Security.sanitize(document.getElementById('form_name').value.trim());
+            var validation = Security.validateField(name, ['required', { type: 'minLength', value: 2 }, { type: 'maxLength', value: 200 }]);
+            if (validation.length > 0) { showToast(validation[0], 'error'); return; }
+            var phone = Security.sanitize(document.getElementById('form_phone').value.trim());
+            var email = Security.sanitize(document.getElementById('form_email').value.trim());
+            if (email && !Security.Validators.email(email)) { showToast('Invalid email format.', 'error'); return; }
+            if (phone && !Security.Validators.phone(phone)) { showToast('Invalid phone format.', 'error'); return; }
+            var entry = {
+                name: name,
+                dept: Security.sanitize(document.getElementById('form_dept').value),
+                subject: Security.sanitize(document.getElementById('form_subject').value.trim()),
+                specialty: Security.sanitize(document.getElementById('form_specialty').value.trim()),
+                compliance: 100,
+                lectures: '0/0',
+                status: 'active',
+                lastActive: 'Just now',
+                phone: phone,
+                email: email,
+                qual: Security.sanitize(document.getElementById('form_qual').value.trim())
+            };
+            APP_DATA.faculty.push(entry);
+            if (USE_SUPABASE) {
+                supabase.from('faculty').insert({
+                    college_id: null,
+                    department_id: null,
+                    name: entry.name,
+                    subject: entry.subject,
+                    specialty: entry.specialty,
+                    phone: entry.phone,
+                    email: entry.email,
+                    qualification: entry.qual,
+                    designation: Security.sanitize(document.getElementById('form_designation').value),
+                    compliance_score: 100
+                }).then(function(res) {
+                    if (res.error) showToast('Saved locally, DB error: ' + Security.safeError(res.error, 'faculty_insert'), 'warning');
+                    else { showToast('Faculty added to database', 'success'); Security.auditLog('faculty_added', { name: name }); }
+                });
+            } else {
+                Security.auditLog('faculty_added_local', { name: name });
+            }
+            renderFacultyGrid(APP_DATA.faculty);
+            setDataEntryStatus('Faculty added: ' + name, 'green');
+            showToast('Faculty added: ' + name, 'success');
+            renderForm();
+        }
+
+        function submitStudentForm() {
+            var name = Security.sanitize(document.getElementById('form_sname').value.trim());
+            var validation = Security.validateField(name, ['required', { type: 'minLength', value: 2 }]);
+            if (validation.length > 0) { showToast(validation[0], 'error'); return; }
+            var marks = parseFloat(document.getElementById('form_mmarks').value) || 0;
+            var total = parseFloat(document.getElementById('form_mtotal').value) || 1100;
+            if (marks < 0 || marks > total) { showToast('Invalid marks.', 'error'); return; }
+            var pct = total > 0 ? ((marks / total) * 100).toFixed(1) : 0;
+            APP_DATA.attendance.push({
+                roll: 'NEW-' + (APP_DATA.attendance.length + 1),
+                name: name,
+                section: 'Pre-Medical',
+                time: '\u2014',
+                status: 'present',
+                remarks: 'New admission \u2014 ' + pct + '% matric'
+            });
+            if (USE_SUPABASE) {
+                supabase.from('students').insert({
+                    college_id: null,
+                    name: name,
+                    father_name: Security.sanitize(document.getElementById('form_fname').value.trim()),
+                    gender: Security.sanitize(document.getElementById('form_gender').value),
+                    city: Security.sanitize(document.getElementById('form_city').value.trim()),
+                    matric_roll_no: Security.sanitize(document.getElementById('form_mroll').value.trim()),
+                    matric_marks_obtained: marks,
+                    matric_total_marks: total,
+                    matric_year: parseInt(document.getElementById('form_myear').value) || 2024
+                }).then(function(res) {
+                    if (res.error) showToast('Saved locally, DB error: ' + Security.safeError(res.error, 'student_insert'), 'warning');
+                    else { showToast('Student added to database', 'success'); Security.auditLog('student_added', { name: name }); }
+                });
+            } else {
+                Security.auditLog('student_added_local', { name: name });
+            }
+            setDataEntryStatus('Student added: ' + name, 'green');
+            showToast('Student added: ' + name, 'success');
+            renderForm();
+        }
+
+        function submitAttendanceForm() {
+            var name = Security.sanitize(document.getElementById('form_att_name').value.trim());
+            var validation = Security.validateField(name, ['required']);
+            if (validation.length > 0) { showToast(validation[0], 'error'); return; }
+            var entry = {
+                roll: Security.sanitize(document.getElementById('form_att_roll').value.trim()),
+                name: name,
+                section: Security.sanitize(document.getElementById('form_att_section').value),
+                time: Security.sanitize(document.getElementById('form_att_time').value.trim()) || '\u2014',
+                status: Security.sanitize(document.getElementById('form_att_status').value),
+                remarks: Security.sanitize(document.getElementById('form_att_remarks').value.trim()) || '\u2014'
+            };
+            APP_DATA.attendance.push(entry);
+            if (USE_SUPABASE) {
+                supabase.from('attendance_daily').insert({
+                    college_id: null,
+                    date: document.getElementById('form_att_date').value || new Date().toISOString().split('T')[0],
+                    status: entry.status,
+                    time_in: entry.time !== '\u2014' ? entry.time : null,
+                    remarks: entry.remarks !== '\u2014' ? entry.remarks : null
+                }).then(function(res) {
+                    if (res.error) showToast('Saved locally, DB error: ' + Security.safeError(res.error, 'attendance_insert'), 'warning');
+                    else { showToast('Attendance saved to database', 'success'); Security.auditLog('attendance_marked', { name: name, status: entry.status }); }
+                });
+            } else {
+                Security.auditLog('attendance_marked_local', { name: name, status: entry.status });
+            }
+            renderAttendanceTable(APP_DATA.attendance);
+            setDataEntryStatus('Attendance marked: ' + name, 'green');
+            showToast('Attendance marked: ' + name, 'success');
+            renderForm();
+        }
+
+        function submitLectureForm() {
+            var faculty = Security.sanitize(document.getElementById('form_lec_faculty').value.trim());
+            if (!faculty) { showToast('Faculty name is required.', 'error'); return; }
+            if (USE_SUPABASE) {
+                supabase.from('lectures').insert({
+                    college_id: null,
+                    date: document.getElementById('form_lec_date').value || new Date().toISOString().split('T')[0],
+                    subject: Security.sanitize(document.getElementById('form_lec_subject').value.trim()),
+                    period_number: parseInt(document.getElementById('form_lec_period').value) || 1,
+                    topic_covered: Security.sanitize(document.getElementById('form_lec_topic').value.trim()),
+                    status: Security.sanitize(document.getElementById('form_lec_status').value)
+                }).then(function(res) {
+                    if (res.error) showToast('DB error: ' + Security.safeError(res.error, 'lecture_insert'), 'error');
+                    else { showToast('Lecture logged to database', 'success'); Security.auditLog('lecture_logged', { faculty: faculty }); }
+                });
+            } else {
+                Security.auditLog('lecture_logged_local', { faculty: faculty });
+            }
+            setDataEntryStatus('Lecture logged successfully', 'green');
+            showToast('Lecture logged', 'success');
+            renderForm();
+        }
+
+        function submitSyllabusForm() {
+            var total = parseInt(document.getElementById('form_syl_total').value) || 0;
+            var done = parseInt(document.getElementById('form_syl_done').value) || 0;
+            if (done > total) { showToast('Completed cannot exceed total.', 'error'); return; }
+            if (USE_SUPABASE) {
+                supabase.from('syllabus_progress').insert({
+                    college_id: null,
+                    subject: Security.sanitize(document.getElementById('form_syl_subject').value.trim()),
+                    chapter_name: Security.sanitize(document.getElementById('form_syl_chapter').value.trim()),
+                    chapter_number: parseInt(document.getElementById('form_syl_num').value) || 0,
+                    total_topics: total,
+                    completed_topics: done
+                }).then(function(res) {
+                    if (res.error) showToast('DB error: ' + Security.safeError(res.error, 'syllabus_insert'), 'error');
+                    else { showToast('Syllabus updated in database', 'success'); Security.auditLog('syllabus_updated', { subject: document.getElementById('form_syl_subject').value }); }
+                });
+            } else {
+                Security.auditLog('syllabus_updated_local', {});
+            }
+            setDataEntryStatus('Syllabus progress updated', 'green');
+            showToast('Syllabus updated', 'success');
+            renderForm();
+        }
+
+        function submitStudentForm() {
+            var name = document.getElementById('form_sname').value.trim();
+            if (!name) { alert('Name is required.'); return; }
+            var marks = parseFloat(document.getElementById('form_mmarks').value) || 0;
+            var total = parseFloat(document.getElementById('form_mtotal').value) || 1100;
+            var pct = total > 0 ? ((marks / total) * 100).toFixed(1) : 0;
+            APP_DATA.attendance.push({
+                roll: 'NEW-' + (APP_DATA.attendance.length + 1),
+                name: name,
+                section: 'Pre-Medical',
+                time: '\u2014',
+                status: 'present',
+                remarks: 'New admission — ' + pct + '% matric'
+            });
+            setDataEntryStatus('Student added: ' + name, 'green');
+            renderForm();
+        }
+
+        function submitAttendanceForm() {
+            var name = document.getElementById('form_att_name').value.trim();
+            if (!name) { alert('Name is required.'); return; }
+            APP_DATA.attendance.push({
+                roll: document.getElementById('form_att_roll').value,
+                name: name,
+                section: document.getElementById('form_att_section').value,
+                time: document.getElementById('form_att_time').value || '\u2014',
+                status: document.getElementById('form_att_status').value,
+                remarks: document.getElementById('form_att_remarks').value || '\u2014'
+            });
+            renderAttendanceTable(APP_DATA.attendance);
+            setDataEntryStatus('Attendance marked: ' + name, 'green');
+            renderForm();
+        }
+
+        function submitLectureForm() {
+            setDataEntryStatus('Lecture logged successfully', 'green');
+            renderForm();
+        }
+
+        function submitSyllabusForm() {
+            setDataEntryStatus('Syllabus progress updated', 'green');
+            renderForm();
+        }
+
+        // ============================================================
+        // DATA ENTRY — CSV Upload
+        // ============================================================
+        var csvUploadData = [];
+        var csvUploadHeaders = [];
+
+        var csvTemplates = {
+            faculty: 'name,subject,specialty,department,designation,qualification,phone,email,compliance,status',
+            students: 'name,father_name,section,city,matric_roll_no,matric_marks,matric_total,matric_year',
+            attendance: 'roll,name,section,time,status,remarks',
+            faculty_attendance: 'name,time_in,time_out,status,remarks',
+            lectures: 'faculty,section,subject,period,topic,status'
+        };
+
+        function downloadTemplate() {
+            var type = document.getElementById('uploadType').value;
+            var headers = csvTemplates[type] || 'name,status';
+            var blob = new Blob([headers], { type: 'text/csv' });
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'template_' + type + '.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function handleCSVUpload(event) {
+            var file = event.target.files[0];
+            if (!file) return;
+            document.getElementById('uploadErrors').classList.add('hidden');
+
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    var text = e.target.result;
+                    var lines = text.trim().split('\n');
+                    if (lines.length < 2) throw new Error('CSV must have headers and at least one data row');
+
+                    csvUploadHeaders = lines[0].split(',').map(function(h) { return h.trim().replace(/^"|"$/g, ''); });
+                    csvUploadData = [];
+                    for (var i = 1; i < lines.length; i++) {
+                        if (!lines[i].trim()) continue;
+                        var vals = lines[i].split(',').map(function(v) { return v.trim().replace(/^"|"$/g, ''); });
+                        var row = {};
+                        csvUploadHeaders.forEach(function(h, idx) { row[h] = vals[idx] || ''; });
+                        csvUploadData.push(row);
+                    }
+
+                    document.getElementById('uploadFileName').textContent = file.name;
+                    document.getElementById('uploadRowCount').textContent = csvUploadData.length + ' rows';
+
+                    // Preview
+                    var previewHead = document.getElementById('uploadPreviewHead');
+                    var previewBody = document.getElementById('uploadPreviewBody');
+                    var ph = '<tr>';
+                    csvUploadHeaders.forEach(function(h) { ph += '<th class="text-left px-3 py-2 font-serif text-zinc-500 text-[10px] tracking-widest uppercase">' + h + '</th>'; });
+                    ph += '</tr>';
+                    previewHead.innerHTML = ph;
+
+                    var pb = '';
+                    csvUploadData.forEach(function(row) {
+                        pb += '<tr class="border-b border-zinc-800/50">';
+                        csvUploadHeaders.forEach(function(h) { pb += '<td class="px-3 py-1.5 text-zinc-400">' + (row[h] || '') + '</td>'; });
+                        pb += '</tr>';
+                    });
+                    previewBody.innerHTML = pb;
+
+                    document.getElementById('uploadPreview').classList.remove('hidden');
+                } catch (err) {
+                    document.getElementById('uploadErrors').textContent = 'Error: ' + err.message;
+                    document.getElementById('uploadErrors').classList.remove('hidden');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function confirmCSVImport() {
+            var type = document.getElementById('uploadType').value;
+            if (type === 'faculty') {
+                csvUploadData.forEach(function(row) {
+                    APP_DATA.faculty.push({
+                        name: row.name || '',
+                        dept: (row.department || '').toLowerCase(),
+                        subject: row.subject || '',
+                        specialty: row.specialty || '',
+                        compliance: parseFloat(row.compliance) || 100,
+                        lectures: '0/0',
+                        status: row.status || 'active',
+                        lastActive: 'Just now',
+                        phone: row.phone || '',
+                        email: row.email || '',
+                        qual: row.qualification || ''
+                    });
+                });
+                renderFacultyGrid(APP_DATA.faculty);
+            } else if (type === 'attendance') {
+                csvUploadData.forEach(function(row) {
+                    APP_DATA.attendance.push({
+                        roll: row.roll || '',
+                        name: row.name || '',
+                        section: row.section || '',
+                        time: row.time || '\u2014',
+                        status: (row.status || 'present').toLowerCase(),
+                        remarks: row.remarks || '\u2014'
+                    });
+                });
+                renderAttendanceTable(APP_DATA.attendance);
+            }
+            setDataEntryStatus('Imported ' + csvUploadData.length + ' records from CSV', 'green');
+            cancelCSVUpload();
+        }
+
+        function cancelCSVUpload() {
+            csvUploadData = [];
+            csvUploadHeaders = [];
+            document.getElementById('uploadPreview').classList.add('hidden');
+            document.getElementById('uploadErrors').classList.add('hidden');
+            document.getElementById('csvFileInput').value = '';
+        }
+
+        // Drag and drop
+        var dz = document.getElementById('dropZone');
+        if (dz) {
+            dz.addEventListener('dragover', function(e) { e.preventDefault(); dz.classList.add('border-blood'); });
+            dz.addEventListener('dragleave', function() { dz.classList.remove('border-blood'); });
+            dz.addEventListener('drop', function(e) {
+                e.preventDefault();
+                dz.classList.remove('border-blood');
+                var file = e.dataTransfer.files[0];
+                if (file && file.name.endsWith('.csv')) {
+                    var input = document.getElementById('csvFileInput');
+                    var dt = new DataTransfer();
+                    dt.items.add(file);
+                    input.files = dt.files;
+                    handleCSVUpload({ target: input });
+                }
+            });
+        }
+
+        // ============================================================
+        // INITIALIZATION
+        // ============================================================
+        async function initApp() {
+            var today = new Date().toISOString().split('T')[0];
+            var gd = document.getElementById('gridDate');
+            if (gd) gd.value = today;
+
+            if (USE_SUPABASE) {
+                setLoading('Connecting to database...');
+                try {
+                    // Fetch faculty
+                    var facultyResult = await supabase.from('faculty').select('*').eq('is_active', true).order('name');
+                    if (facultyResult.data && facultyResult.data.length > 0) {
+                        APP_DATA.faculty = facultyResult.data.map(function(f) {
+                            return {
+                                name: f.name,
+                                dept: (f.department_id || '').toLowerCase(),
+                                subject: f.subject || '',
+                                specialty: f.specialty || '',
+                                compliance: f.compliance_score || 100,
+                                lectures: '0/0',
+                                status: f.compliance_score >= 90 ? 'active' : (f.compliance_score >= 75 ? 'warning' : 'critical'),
+                                lastActive: 'Today',
+                                phone: f.phone || '',
+                                email: f.email || '',
+                                qual: f.qualification || ''
+                            };
+                        });
+                    }
+
+                    // Fetch attendance
+                    var attResult = await supabase.from('attendance_daily').select('*, students(name), sections(name)').eq('date', today).order('students(name)');
+                    if (attResult.data && attResult.data.length > 0) {
+                        APP_DATA.attendance = attResult.data.map(function(r) {
+                            return {
+                                roll: r.student_id ? r.student_id.substring(0, 8) : '',
+                                name: (r.students && r.students.name) || 'Unknown',
+                                section: (r.sections && r.sections.name) || '',
+                                time: r.time_in ? r.time_in.toString().substring(0, 5) : '\u2014',
+                                status: r.status || 'present',
+                                remarks: r.remarks || '\u2014'
+                            };
+                        });
+                    }
+
+                    setLoading('Data loaded from database');
+                    showToast('Connected to database', 'success');
+                } catch (e) {
+                    console.warn('Supabase fetch error, using mock data:', e);
+                    setLoading('Database error — using mock data');
+                    showToast('Using offline data', 'warning');
+                }
+            } else if (SHEET_ID) {
+                await fetchSheetData();
+            } else {
+                setLoading('Using mock demo data');
+                setTimeout(function() {}, 500);
+            }
+
+            renderAttendanceTable(APP_DATA.attendance);
+            renderFacultyGrid(APP_DATA.faculty);
+            initDashboardChart();
+            hideLoading();
+        }
+
+        initApp();
+    </script>
+</body>
+</html>

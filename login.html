@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.tailwindcss.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co; img-src 'self' data: blob:; frame-ancestors 'none'; base-uri 'self'; form-action 'self';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta name="robots" content="noindex, nofollow">
+    <title>A.D.A.M. — Sign In</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="src/security.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        serif: ['Playfair Display', 'serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        zinc: { 950: '#09090b', 900: '#18181b', 800: '#27272a', 700: '#3f3f46', 600: '#52525b', 500: '#71717a', 400: '#a1a1aa', 300: '#d4d4d8', 200: '#e4e4e7', 100: '#f4f4f5' },
+                        blood: '#8b0000',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background-color: #09090b; color: #e4e4e7; }
+        input[type="email"], input[type="password"] {
+            background: #18181b; border: 1px solid #27272a; color: #e4e4e7; padding: 12px 16px; font-family: 'JetBrains Mono', monospace; font-size: 13px; outline: none; transition: border-color 0.2s; width: 100%;
+        }
+        input:focus { border-color: #52525b; }
+        .btn-login { background: #8b0000; color: #e4e4e7; padding: 12px 24px; font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; border: none; cursor: pointer; transition: background 0.2s; width: 100%; }
+        .btn-login:hover { background: #a00000; }
+        .btn-login:disabled { opacity: 0.5; cursor: not-allowed; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.4s ease; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-md fade-in">
+        <!-- Logo -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-blood mb-4">
+                <span class="text-white font-serif font-bold text-2xl">A</span>
+            </div>
+            <h1 class="font-serif font-bold text-zinc-100 text-xl tracking-wider">A.D.A.M.</h1>
+            <p class="text-zinc-600 text-[10px] tracking-[0.3em] uppercase mt-1">Command Center</p>
+        </div>
+
+        <!-- Login Card -->
+        <div class="bg-zinc-900 border border-zinc-800 p-8">
+            <h2 class="font-serif text-zinc-100 text-sm tracking-wider mb-1">Sign In</h2>
+            <p class="text-zinc-600 text-[10px] tracking-widest uppercase mb-6">Enter your credentials to access the dashboard</p>
+
+            <form id="loginForm" onsubmit="handleLogin(event)">
+                <div class="mb-4">
+                    <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-2">Email Address</label>
+                    <input type="email" id="loginEmail" placeholder="user@govtcollege.edu.pk" required autocomplete="email">
+                </div>
+                <div class="mb-6">
+                    <label class="text-zinc-500 text-[10px] tracking-widest uppercase block mb-2">Password</label>
+                    <input type="password" id="loginPassword" placeholder="Enter password" required autocomplete="current-password">
+                </div>
+
+                <div id="loginError" class="hidden mb-4 p-3 bg-blood/10 border border-blood/30 text-blood text-xs"></div>
+
+                <button type="submit" id="loginBtn" class="btn-login">
+                    <span id="loginBtnText">Sign In</span>
+                    <span id="loginBtnLoading" class="hidden">Authenticating...</span>
+                </button>
+            </form>
+
+            <div class="mt-6 pt-4 border-t border-zinc-800">
+                <p class="text-zinc-600 text-[10px] text-center">Protected system. Unauthorized access is prohibited.</p>
+            </div>
+        </div>
+
+        <p class="text-zinc-700 text-[10px] text-center mt-6 tracking-wider">Government College Management System v1.0</p>
+    </div>
+
+    <script>
+        // ============================================================
+        // SUPABASE CONFIG — Replace with your project credentials
+        // ============================================================
+        var SUPABASE_URL = 'YOUR_SUPABASE_URL';
+        var SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+        var supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Initialize Security Module
+        Security.init({
+            sessionTimeout: 30 * 60 * 1000,
+            inactivityTimeout: 15 * 60 * 1000,
+            onSessionExpired: function() {
+                window.location.href = 'login.html?reason=session_expired';
+            }
+        });
+
+        // Check lockout status on page load
+        (async function checkLockout() {
+            var lockout = Security.isLockedOut();
+            if (lockout.locked) {
+                var errorEl = document.getElementById('loginError');
+                errorEl.textContent = 'Account locked. Try again in ' + lockout.remaining + ' minutes.';
+                errorEl.classList.remove('hidden');
+                document.getElementById('loginBtn').disabled = true;
+            }
+        })();
+
+        // Check if already logged in
+        (async function checkSession() {
+            var session = await supabase.auth.getSession();
+            if (session.data.session) {
+                window.location.href = 'index.html';
+            }
+        })();
+
+        // Show URL-based messages
+        (function showUrlMessages() {
+            var params = new URLSearchParams(window.location.search);
+            if (params.get('reason') === 'session_expired') {
+                var errorEl = document.getElementById('loginError');
+                errorEl.textContent = 'Your session has expired. Please sign in again.';
+                errorEl.classList.remove('hidden');
+            }
+        })();
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            var email = Security.sanitize(document.getElementById('loginEmail').value.trim());
+            var password = document.getElementById('loginPassword').value;
+            var errorEl = document.getElementById('loginError');
+            var btnText = document.getElementById('loginBtnText');
+            var btnLoading = document.getElementById('loginBtnLoading');
+            var btn = document.getElementById('loginBtn');
+
+            // Validate email format
+            if (!Security.Validators.email(email)) {
+                errorEl.textContent = 'Please enter a valid email address.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            // Check lockout
+            var lockout = Security.isLockedOut();
+            if (lockout.locked) {
+                errorEl.textContent = 'Account locked. Try again in ' + lockout.remaining + ' minutes.';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            errorEl.classList.add('hidden');
+            btn.disabled = true;
+            btnText.classList.add('hidden');
+            btnLoading.classList.remove('hidden');
+
+            try {
+                var result = await supabase.auth.signInWithPassword({ email: email, password: password });
+                if (result.error) throw result.error;
+
+                // Record successful login
+                Security.recordLoginAttempt(true);
+
+                // Fetch user profile securely
+                var userResult = await supabase.from('users').select('role, college_id, department_id, full_name, email, is_active, locked_until').eq('id', result.data.user.id).single();
+                if (userResult.error) throw new Error('Unable to load user profile.');
+                if (!userResult.data) throw new Error('User profile not found. Contact administrator.');
+                if (!userResult.data.is_active) throw new Error('Your account has been disabled. Contact administrator.');
+                if (userResult.data.locked_until) throw new Error('Your account is locked. Contact administrator.');
+
+                // Store securely with integrity check
+                Security.storeSecure(Security.CONFIG.userKey, {
+                    id: result.data.user.id,
+                    email: userResult.data.email,
+                    role: userResult.data.role,
+                    college_id: userResult.data.college_id,
+                    department_id: userResult.data.department_id,
+                    name: userResult.data.full_name
+                });
+
+                // Audit log
+                Security.auditLog('login_success', { email: email, role: userResult.data.role });
+
+                window.location.href = 'index.html';
+            } catch (err) {
+                // Record failed attempt
+                Security.recordLoginAttempt(false);
+
+                // Safe error message
+                var safeMsg = Security.safeError(err, 'login');
+                errorEl.textContent = safeMsg;
+                errorEl.classList.remove('hidden');
+
+                // Audit log
+                Security.auditLog('login_failed', { email: email, attempts: Security.getRemainingAttempts() });
+
+                // Check if now locked
+                var lockout = Security.isLockedOut();
+                if (lockout.locked) {
+                    errorEl.textContent = 'Account locked after too many failed attempts. Try again in ' + lockout.remaining + ' minutes.';
+                    btn.disabled = true;
+                }
+
+                btn.disabled = false;
+                btnText.classList.remove('hidden');
+                btnLoading.classList.add('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
